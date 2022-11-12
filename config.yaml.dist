@@ -1,0 +1,69 @@
+###########################
+#  Mastodon Retooter Bot  #
+###########################
+
+# App Info
+app:
+  name: "Echo"
+  api_base_url: "https://mastodon.social"
+  client_credentials: "client.secret"
+  user_credentials: "user.secret"
+  user:
+    email: "bot+echo@my-fancy.site"
+    password: "SuperSecureP4ss"
+
+# Logging config
+logger:
+  # [Integer] Log level: NOTSET=0 | DEBUG=10 | INFO=20 | WARN=30 | ERROR=40 | CRITICAL=50
+  loglevel: 10
+  # [String] Name of the logger
+  name: "mastodon_echo_bot"
+  # [Bool] Dump the log into a file
+  to_file: True
+  # [String] Path and filename of the log file
+  filename: "log/mastodon_echo_bot.log"
+  # [Bool] Dump the log into a stdout
+  to_stdout: True
+  # [String] Format of the log
+  format: "[%(asctime)s] %(levelname)-8s %(name)-12s %(message)s"
+
+# Storage for the accounts registry
+accounts_storage:
+  # [String] Where to store it
+  file: "storage/accounts.yaml"
+
+# Storage for the toots queue registry
+toots_queue_storage:
+  # [String] Where to store it
+  file: "storage/toots_queue.yaml"
+
+# The spy, in charge to query the defined users and get their toots
+spy:
+  # [Bool] Ignore other visibility. If False it relays on visibility of the authenticated bot.
+  only_public_visibility: True
+  # [Bool] Ignore the last seen toot. If True will parse always all.
+  ignore_toots_offset: False
+  # Which users to spy
+  accounts:
+    -
+      # [String] Full user notation
+      user: "@me@mastodon.social"
+      # [Bool] Queue the own toots?
+      toots: False
+      # [Bool] Queue the retoots done?
+      retoots: True
+    -
+      user: "@another_user@fosstodon.org"
+      toots: False
+      retoots: True
+
+publisher:
+  # [Bool] Performs a dry run: the queue is untouched and no re-toot is really done
+  # Check the logs/stdout to see the results
+  dry_run: False
+
+  # [Bool] Publish only the older post
+  # Useful if we have this boot executed often, so publishes a single toot in every run
+  only_older_toot: True
+
+

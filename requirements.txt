@@ -1,0 +1,2 @@
+pyyaml
+Mastodon.py==1.5.2
