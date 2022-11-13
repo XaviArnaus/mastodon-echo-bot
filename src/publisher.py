@@ -39,6 +39,10 @@ class Publisher:
         self._logger.info("Reading queue")
         saved_queue = self._toots_queue.get("queue", [])
 
+        if not saved_queue:
+            self._logger.info("The queue is empty, skipping.")
+            return
+
         for queued_toot in saved_queue:
             self._execute_action(queued_toot)
 
@@ -51,6 +55,11 @@ class Publisher:
     def publish_older_from_queue(self) -> None:
         self._logger.info("Reading queue")
         saved_queue = self._toots_queue.get("queue", [])
+
+        if not saved_queue:
+            self._logger.info("The queue is empty, skipping.")
+            return
+
 
         if not self._config.get("publisher.dry_run"):
             older_queued_toot = saved_queue.pop(0)
