@@ -19,20 +19,24 @@ class Echo:
         - It spies all registered accounts and queues toots
         - Re-toots the whole queue or just the older toot, according to the config.
         '''
-        # All actions are done under a Mastodon API instance
-        mastodon = MastodonHelper.get_instance(self._config)
+        try:
+            # All actions are done under a Mastodon API instance
+            mastodon = MastodonHelper.get_instance(self._config)
 
-        # Spy the defined accounts
-        # and merge the toots to the already existing queue       
-        spy = Spy(self._config)
-        spy.maintain_toots_queue(mastodon)
+            # Spy the defined accounts
+            # and merge the toots to the already existing queue       
+            spy = Spy(self._config)
+            spy.maintain_toots_queue(mastodon)
 
-        # Read from the queue the toots to publish
-        # and do so according to the config parameters
-        publisher = Publisher(self._config)
-        if self._config.get("publisher.only_older_toot"):
-            self._logger.info("Publishing the older post")
-            publisher.publish_older_from_queue(mastodon)
-        else:
-            self._logger.info("Publishing the whole queue")
-            publisher.publish_all_from_queue(mastodon)
+            # Read from the queue the toots to publish
+            # and do so according to the config parameters
+            publisher = Publisher(self._config)
+            if self._config.get("publisher.only_older_toot"):
+                self._logger.info("Publishing the older post")
+                publisher.publish_older_from_queue(mastodon)
+            else:
+                self._logger.info("Publishing the whole queue")
+                publisher.publish_all_from_queue(mastodon)
+        except Exception as e:
+            self._logger.critical("ERROR: " + str(e))
+

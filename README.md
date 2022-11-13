@@ -36,27 +36,32 @@ As this is a bot that connects as an app to a given Mastodon server, it can be d
 3. Create an app in this account, under the Development section in your Preferences.
 
 ### In the host
-1. Start a shell console in the host that will allocate the bod
+1. Start a shell console in the host that will allocate the bot
 2. Move yourself to the location that will allocate the folder of the bot
 3. Clone this repository
 ```
 $ git clone git@github.com:XaviArnaus/mastodon-echo-bot.git
 ```
-4. Move into the app folder and install the dependencies
+4. Discover which is the python3 binary your host is using. In case it is `python3` and not `python`, you'll have to update the reference at the top of the `Makefile` file.
+5. Ensure that your system has `pip`. Otherwise install it. i.e. for Debian:
+```
+$ sudo apt install pip
+```
+6. Move into the app folder and install the dependencies
 ```
 $ cd mastodon-echo-bot
 $ make init
 ```
-5. Generate your own config file from the one distributed in the repo
+7. Generate your own config file from the one distributed in the repo
 ```
 $ cp config.yaml.dist config.yaml
 ```
-6. Edit the config file and adjust it to your needs
-7. Make sure you (the user that will use run the bot) has write permission to the following folders:
+8. Edit the config file and adjust it to your needs
+9. Make sure you (the user that will use run the bot) has write permission to the following folders:
     * root of the app
     * log/
     * storage/
-8. Create the app, this is done just one time
+10. Create the app, this is done just one time
 ```
 $ make create_app
 ```
@@ -72,6 +77,22 @@ make run
 
 ## Run scheduled
 To run it every `x` time simply add it into the crontab of your host.
+1. Start a shell console tot he host that allocates the bot
+2. Move to the directory that holds your bot and show the full path
+```
+$ cd ~/bots/mastodon-echo-bot
+$ pwd
+```
+Copy the path that appears there!
+
+3. Edit the `crontab`
+```
+$ crontab -e
+```
+4. Add the following line for executing every 15 minutes. Use the path you copied in the step 2 and also add the `make run` command:
+```
+0,15,30,45 * * * * /local/mastodon/bots/mastodon-echo-bot/make run
+```
 
 ## Dry Run
 Keep in mind that you can set up the config file so that the run **will not** publish anything, but will do almost all action, so you can follow the run from the log file.
