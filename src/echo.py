@@ -38,5 +38,5 @@ class Echo:
                 self._logger.info("Publishing the whole queue")
                 publisher.publish_all_from_queue(mastodon)
         except Exception as e:
-            self._logger.critical("ERROR: " + str(e))
+            self._logger.exception(e)
 

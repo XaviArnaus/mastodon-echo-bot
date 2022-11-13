@@ -21,6 +21,10 @@ class Publisher:
         self._logger.info("Reading queue")
         saved_queue = self._toots_queue.get("queue", [])
 
+        if not saved_queue:
+            self._logger.info("The queue is empty, skipping.")
+            return
+
         for queued_toot in saved_queue:
             self._logger.info("Retooting post %d", queued_toot["id"])
             if not self._config.get("publisher.dry_run"):
@@ -37,6 +41,11 @@ class Publisher:
     def publish_older_from_queue(self, mastodon: Mastodon) -> None:
         self._logger.info("Reading queue")
         saved_queue = self._toots_queue.get("queue", [])
+
+        if not saved_queue:
+            self._logger.info("The queue is empty, skipping.")
+            return
+
 
         if not self._config.get("publisher.dry_run"):
             older_queued_toot = saved_queue.pop(0)
