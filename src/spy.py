@@ -19,6 +19,9 @@ class Spy:
         self._toots_queue = Storage(self._config.get("toots_queue_storage.file"))
 
     def maintain_toots_queue(self, mastodon: Mastodon) -> None:
+        # This will contain the queue to re-toot
+        toots_queue = []
+
         # For each user in the config
         for account_params in self._config.get("spy.accounts"):
 
@@ -59,8 +62,7 @@ class Spy:
             if len(toots) == 0:
                 continue
             
-            # This will contain the queue to re-toot
-            toots_queue = []
+            # Keep track of the last toot seen
             new_last_seen_toot = toots[0].id
 
             # For each status
