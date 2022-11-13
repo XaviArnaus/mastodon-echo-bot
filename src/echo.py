@@ -34,13 +34,13 @@ class Echo:
 
             # Read from the queue the toots to publish
             # and do so according to the config parameters
-            publisher = Publisher(self._config)
+            publisher = Publisher(self._config, mastodon)
             if self._config.get("publisher.only_older_toot"):
                 self._logger.info("Publishing the older post")
-                publisher.publish_older_from_queue(mastodon)
+                publisher.publish_older_from_queue()
             else:
                 self._logger.info("Publishing the whole queue")
-                publisher.publish_all_from_queue(mastodon)
+                publisher.publish_all_from_queue()
         except Exception as e:
-            self._logger.critical("ERROR: " + str(e))
+            self._logger.exception(e)
 

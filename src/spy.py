@@ -1,6 +1,5 @@
 from bundle.config import Config
 from bundle.storage import Storage
-from .mastodon_helper import MastodonHelper
 from mastodon import Mastodon
 import logging
 
@@ -110,10 +109,11 @@ class Spy:
                 # Later on we will load it and reblog it.
                 saved_queue.append({
                     "id": toot.id,
-                    "created_at": toot.created_at
+                    "published_at": toot.created_at,
+                    "action": "reblog"
                 })
             self._logger.info("Ensuring that the queue is sorted by date ASC and without duplications")
-            saved_queue = sorted(saved_queue, key=lambda x: x["created_at"])
+            saved_queue = sorted(saved_queue, key=lambda x: x["published_at"])
             processed_queue = []
             [processed_queue.append(x) for x in saved_queue if x not in processed_queue]
             self._logger.info("Saving the queue")
