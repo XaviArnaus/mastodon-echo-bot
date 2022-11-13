@@ -1,11 +1,13 @@
 from .echo import Echo
 from .spy import Spy
+from .feed_parser import FeedParser
 from .publisher import Publisher
 from .mastodon_helper import MastodonHelper
 
 __all__ = [
     "Echo",
     "Spy",
+    "FeedParser"
     "Publisher",
     "MastodonHelper"
 ]

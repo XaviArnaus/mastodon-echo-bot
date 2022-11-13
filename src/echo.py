@@ -2,6 +2,7 @@ from bundle.config import Config
 from bundle.storage import Storage
 from .mastodon_helper import MastodonHelper
 from .spy import Spy
+from .feed_parser import FeedParser
 from .publisher import Publisher
 import logging
 
@@ -27,6 +28,9 @@ class Echo:
             # and merge the toots to the already existing queue       
             spy = Spy(self._config)
             spy.maintain_toots_queue(mastodon)
+
+            feed_parser = FeedParser(self._config)
+            feed_parser.consume_feeds(mastodon)
 
             # Read from the queue the toots to publish
             # and do so according to the config parameters

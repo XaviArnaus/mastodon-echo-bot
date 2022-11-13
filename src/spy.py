@@ -23,7 +23,7 @@ class Spy:
         toots_queue = []
 
         # For each user in the config
-        for account_params in self._config.get("spy.accounts"):
+        for account_params in self._config.get("spy.accounts", []):
 
             account_id = None
             last_seen_toot = None
