@@ -99,20 +99,23 @@ class Spy:
             self._accounts_storage.write_file()
 
         # Update the toots queue, by adding the new ones at the end of the list
-        self._logger.info("Reading queue")
-        saved_queue = self._toots_queue.get("queue", [])
-        self._logger.info("Adding %d to the queue", len(toots_queue))
-        for toot in toots_queue:
-            # We only want the ID of the toot and the timestamp.
-            # Later on we will load it and reblog it.
-            saved_queue.append({
-                "id": toot.id,
-                "created_at": toot.created_at
-            })
-        self._logger.info("Ensuring that the queue is sorted by date ASC and without duplications")
-        saved_queue = sorted(saved_queue, key=lambda x: x["created_at"])
-        processed_queue = []
-        [processed_queue.append(x) for x in saved_queue if x not in processed_queue]
-        self._logger.info("Saving the queue")
-        self._toots_queue.set("queue", processed_queue)
-        self._toots_queue.write_file()
+        if not toots_queue:
+            self._logger.info("No new toots to queue, skipping.")
+        else:
+            self._logger.info("Reading queue")
+            saved_queue = self._toots_queue.get("queue", [])
+            self._logger.info("Adding %d to the queue", len(toots_queue))
+            for toot in toots_queue:
+                # We only want the ID of the toot and the timestamp.
+                # Later on we will load it and reblog it.
+                saved_queue.append({
+                    "id": toot.id,
+                    "created_at": toot.created_at
+                })
+            self._logger.info("Ensuring that the queue is sorted by date ASC and without duplications")
+            saved_queue = sorted(saved_queue, key=lambda x: x["created_at"])
+            processed_queue = []
+            [processed_queue.append(x) for x in saved_queue if x not in processed_queue]
+            self._logger.info("Saving the queue")
+            self._toots_queue.set("queue", processed_queue)
+            self._toots_queue.write_file()
