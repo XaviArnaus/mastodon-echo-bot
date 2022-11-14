@@ -53,8 +53,8 @@ class TwitterParser:
         elif toot["type"] == "own":
             text = f"{account_name} ({account_username}@twitter) ha dit:\n\n{text}"
 
-        # Now update the text in the object
-        toot["text"] = text
+        # Now set the field that is used in the publisher
+        toot["status"] = text
 
         return toot
     
