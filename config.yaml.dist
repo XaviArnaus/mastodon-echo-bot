@@ -27,23 +27,20 @@ logger:
   # [String] Format of the log
   format: "[%(asctime)s] %(levelname)-8s %(name)-12s %(message)s"
 
-# Storage for the accounts registry
-accounts_storage:
-  # [String] Where to store it
-  file: "storage/accounts.yaml"
-
 # Storage for the toots queue registry
 toots_queue_storage:
   # [String] Where to store it
   file: "storage/toots_queue.yaml"
 
-# The spy, in charge to query the defined users and get their toots
-spy:
+# The Mastodon Parser, in charge to query the defined accounts and get their toots
+mastodon_parser:
+  # [String] Where to store the accounts registry
+  storage_file: "storage/accounts.yaml"
   # [Bool] Ignore other visibility. If False it relays on visibility of the authenticated bot.
   only_public_visibility: True
   # [Bool] Ignore the last seen toot. If True will parse always all.
   ignore_toots_offset: False
-  # Which users to spy
+  # [List of Objects] Which users to spy
   accounts:
     -
       # [String] Full user notation
@@ -52,15 +49,25 @@ spy:
       toots: False
       # [Bool] Queue the retoots done?
       retoots: True
+
+# The Feed Parser, in charge to query the defined feeds and get their posts
+feed_parser:
+  # [String] Where to store the feeds registry
+  storage_file: "storage/feeds.yaml"
+  # [List of Objects]
+  sites:
     -
-      user: "@another_user@fosstodon.org"
-      toots: False
-      retoots: True
+      # [String] Name of this site. Will be used as {origin} in the toot
+      name: "News"
+      # [String] URL of the feed to parse
+      url: "https://www.example.cat/rss/my_feed"
+      # [String] 
+      language_default: "ca_ES"
 
 publisher:
   # [Bool] Performs a dry run: the queue is untouched and no re-toot is really done
   # Check the logs/stdout to see the results
-  dry_run: False
+  dry_run: True
 
   # [Bool] Publish only the older post
   # Useful if we have this boot executed often, so publishes a single toot in every run

@@ -19,7 +19,7 @@ class FeedParser:
         self._config = config
         self._logger = logging.getLogger(config.get("logger.name"))
         self._toots_queue = Storage(self._config.get("toots_queue_storage.file"))
-        self._feeds_storage = Storage(self._config.get("feeds_storage.file"))
+        self._feeds_storage = Storage(self._config.get("feed_parser.storage_file"))
 
     def _format_toot(self, post: dict, origin: str) -> str:
 
@@ -37,7 +37,7 @@ class FeedParser:
         toots_queue = []
 
         # For each user in the config
-        for site in self._config.get("feeds.sites"):
+        for site in self._config.get("feed_parser.sites"):
 
             self._logger.info("Getting possible stored data for %s", site["name"])
             site_data = self._feeds_storage.get_hashed(site["url"], None)

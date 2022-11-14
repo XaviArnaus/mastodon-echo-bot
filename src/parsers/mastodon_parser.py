@@ -10,7 +10,7 @@ class MastodonParser:
     def __init__(self, config: Config) -> None:
         self._config = config
         self._logger = logging.getLogger(config.get("logger.name"))
-        self._accounts_storage = Storage(self._config.get("accounts_storage.file"))
+        self._accounts_storage = Storage(self._config.get("mastodon_parser.storage_file"))
         self._toots_queue = Storage(self._config.get("toots_queue_storage.file"))
 
     def parse(self, mastodon: Mastodon) -> None:
