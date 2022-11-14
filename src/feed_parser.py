@@ -9,6 +9,7 @@ from time import mktime
 import feedparser
 import logging
 import re
+from bundle.debugger import dd
 
 class FeedParser:
     '''
@@ -31,7 +32,7 @@ class FeedParser:
         if title_only_chars == title_only_chars.upper():
             title = " ".join([word.capitalize() for word in title.lower().split(" ")])
         link = post["link"]
-        summary = post["summary"] + "\n\n" if "summary" in post and post["summary"] and post["summary"] is not "" else ""
+        summary = post["summary"] + "\n\n" if "summary" in post and post["summary"] and post["summary"] != "" else ""
         
         return f"{origin}:\n\t{title}\n\n{summary}{link}"
 
@@ -58,8 +59,9 @@ class FeedParser:
             self._logger.info("Sorting %d entries ASC", len(parsed_site["entries"]))
             posts = sorted(parsed_site["entries"], key=lambda x: x["published_parsed"])
 
-            # Keep track of the last post date seen
-            last_published_post_date = None
+            # Keep track of the last post date seen.
+            # Defaults to the current, will be updated with any new one
+            last_published_post_date = site_data["last_published_post_date"]
 
             for post in posts:
 
@@ -80,8 +82,8 @@ class FeedParser:
 
                 # We don't want to repeat posts that we saw in previous parsings
                 if site_data and "last_published_post_date" in site_data \
-                    and site_data["last_published_post_date"] > post_date:
-                    self._logger.info("Discarding post: already seen")
+                    and site_data["last_published_post_date"] >= post_date:
+                    self._logger.info("Discarding post: already seen %s", post_date)
                     continue
                 
                 # Prepare the new toot
@@ -97,7 +99,7 @@ class FeedParser:
             # Update our storage with what we found
             self._logger.debug("Updating gathered site data for %s", site["name"])
             self._feeds_storage.set_hashed(
-                site["name"],
+                site["url"],
                 {
                     "last_published_post_date": last_published_post_date
                 }
