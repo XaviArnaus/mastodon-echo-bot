@@ -27,10 +27,10 @@ class FeedParser:
 
     def _format_toot(self, post: dict, origin: str) -> str:
 
-        title = post["title"].lower().capitalize()
+        title = post["title"]
         title_only_chars = re.sub("^[A-Za-z]*", "", title)
         if title_only_chars == title_only_chars.upper():
-            title = title.lower().capitalize()
+            title = " ".join([word.capitalize() for word in title.lower().split(" ")])
         link = post["link"]
         summary = post["summary"] + "\n\n" if "summary" in post and post["summary"] and post["summary"] is not "" else ""
         
