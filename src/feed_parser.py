@@ -61,7 +61,7 @@ class FeedParser:
 
             # Keep track of the last post date seen.
             # Defaults to the current, will be updated with any new one
-            last_published_post_date = site_data["last_published_post_date"]
+            last_published_post_date = site_data["last_published_post_date"] if site_data and "last_published_post_date" in site_data else None
 
             for post in posts:
 
