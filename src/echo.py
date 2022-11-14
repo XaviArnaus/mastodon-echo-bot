@@ -1,6 +1,6 @@
 from bundle.config import Config
 from .mastodon_helper import MastodonHelper
-from .parsers.spy import Spy
+from .parsers.mastodon_parser import MastodonParser
 from .parsers.feed_parser import FeedParser
 from .publisher import Publisher
 import logging
@@ -23,13 +23,15 @@ class Echo:
             # All actions are done under a Mastodon API instance
             mastodon = MastodonHelper.get_instance(self._config)
 
-            # Spy the defined accounts
-            # and merge the toots to the already existing queue       
-            spy = Spy(self._config)
-            spy.maintain_toots_queue(mastodon)
+            # Parses the defined mastodon accounts
+            # and merges the toots to the already existing queue       
+            mastodon_parser = MastodonParser(self._config)
+            mastodon_parser.parse(mastodon)
 
+            # Parses the defined feeds
+            # and merges the toots to the already existing queue
             feed_parser = FeedParser(self._config)
-            feed_parser.consume_feeds(mastodon)
+            feed_parser.parse()
 
             # Read from the queue the toots to publish
             # and do so according to the config parameters

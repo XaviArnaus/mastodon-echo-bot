@@ -1,6 +1,5 @@
 from bundle.config import Config
 from bundle.storage import Storage
-from mastodon import Mastodon
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from dateutil import parser
@@ -35,7 +34,7 @@ class FeedParser:
         
         return f"{origin}:\n\t{title}\n\n{summary}{link}"
 
-    def consume_feeds(self, mastodon: Mastodon) -> None:
+    def parse(self) -> None:
         # This will contain the queue to toot
         toots_queue = []
 

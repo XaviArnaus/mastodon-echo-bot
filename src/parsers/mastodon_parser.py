@@ -3,7 +3,7 @@ from bundle.storage import Storage
 from mastodon import Mastodon
 import logging
 
-class Spy:
+class MastodonParser:
     '''
     Spy
 
@@ -17,7 +17,7 @@ class Spy:
         self._accounts_storage = Storage(self._config.get("accounts_storage.file"))
         self._toots_queue = Storage(self._config.get("toots_queue_storage.file"))
 
-    def maintain_toots_queue(self, mastodon: Mastodon) -> None:
+    def parse(self, mastodon: Mastodon) -> None:
         # This will contain the queue to re-toot
         toots_queue = []
 
