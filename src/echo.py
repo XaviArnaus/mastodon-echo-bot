@@ -1,8 +1,7 @@
 from bundle.config import Config
-from bundle.storage import Storage
 from .mastodon_helper import MastodonHelper
-from .spy import Spy
-from .feed_parser import FeedParser
+from .parsers.spy import Spy
+from .parsers.feed_parser import FeedParser
 from .publisher import Publisher
 import logging
 
