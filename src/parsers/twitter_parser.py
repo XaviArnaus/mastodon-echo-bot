@@ -154,13 +154,13 @@ class TwitterParser:
                 "Getting max %d tweets from %s since %s",
                 self._config.get("twitter_parser.max_tweets_to_retrieve", 10),
                 user["user"],
-                last_seen_tweet_date + timedelta(minutes=1)
+                last_seen_tweet_date + timedelta(minutes=1) if last_seen_tweet_date else None
             )
             tweets = client.get_users_tweets(
                 user["id"],
                 max_results=self._config.get("twitter_parser.max_tweets_to_retrieve", 10),
                 tweet_fields=self.TWEET_FIELDS,
-                start_time=last_seen_tweet_date + timedelta(minutes=1)
+                start_time=last_seen_tweet_date + timedelta(minutes=1) if last_seen_tweet_date else None
             )
 
             # If no toots, just go for the next account
