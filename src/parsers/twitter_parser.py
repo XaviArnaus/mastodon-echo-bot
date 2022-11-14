@@ -1,9 +1,11 @@
 from bundle.config import Config
 from bundle.storage import Storage
+from datetime import timedelta
 from tweepy import Client
 import tweepy as twitter
 import logging
 import re
+from bundle.debugger import dd
 
 class TwitterParser:
     '''
@@ -121,7 +123,7 @@ class TwitterParser:
         # For each user in the config
         for account_params in accounts_params:
             
-            last_seen_tweet = None
+            last_seen_tweet_date = None
 
             # Do we have any config relating this user already?
             self._logger.info("Getting possible stored data for %s", account_params["user"])
@@ -130,8 +132,8 @@ class TwitterParser:
                 self._logger.info("Reusing stored data for %s", account_params["user"])
 
                 if not self._config.get("twitter_parser.ignore_tweets_offset") \
-                    and user["last_seen_tweet"]:
-                    last_seen_tweet = user["last_seen_tweet"]
+                    and user["last_seen_tweet_date"]:
+                    last_seen_tweet_date = user["last_seen_tweet_date"]
             else:
                 # Get the account ID from the given user string
                 self._logger.info("Searching for %s", account_params["user"])
@@ -149,23 +151,27 @@ class TwitterParser:
 
             # Get the tweets from the given account ID
             self._logger.info(
-                "Getting max %d tweets from %s",
+                "Getting max %d tweets from %s since %s",
                 self._config.get("twitter_parser.max_tweets_to_retrieve", 10),
-                user["user"]
+                user["user"],
+                last_seen_tweet_date + timedelta(minutes=1)
             )
             tweets = client.get_users_tweets(
                 user["id"],
                 max_results=self._config.get("twitter_parser.max_tweets_to_retrieve", 10),
                 tweet_fields=self.TWEET_FIELDS,
+                start_time=last_seen_tweet_date + timedelta(minutes=1)
             )
-            self._logger.info("got %s", len(tweets[0]))
 
             # If no toots, just go for the next account
-            if len(tweets[0]) == 0:
+            if tweets[3]["result_count"] == 0:
+                self._logger.info("No tweets found, skipping")
                 continue
+            else:
+                self._logger.info("got %s", len(tweets[0]))
 
-            # Keep track of the last toot seen
-            last_seen_tweet = tweets[0][0].id
+            # We want to keep track of the last tweet seen
+            last_seen_tweet_date = tweets[0][0]["created_at"]
 
             # For each status
             for tweet in tweets[0]:
@@ -212,7 +218,7 @@ class TwitterParser:
                     "id": user["id"],
                     "name": user["name"],
                     "user": user["user"],
-                    "last_seen_tweet": last_seen_tweet
+                    "last_seen_tweet_date": last_seen_tweet_date
                 }
             )
             self._logger.info("Storing data for %s", user["user"])
