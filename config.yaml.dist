@@ -40,7 +40,7 @@ mastodon_parser:
   only_public_visibility: True
   # [Bool] Ignore the last seen toot. If True will parse always all.
   ignore_toots_offset: False
-  # [List of Objects] Which users to spy
+  # [List of Objects] Which accounts to parse
   accounts:
     -
       # [String] Full user notation
@@ -63,6 +63,29 @@ feed_parser:
       url: "https://www.example.cat/rss/my_feed"
       # [String] 
       language_default: "ca_ES"
+
+twitter_parser:
+  # [String] Bearer token from Twitter.
+  bearer_token: "my-super-long-bearer-token-that-comes-from-registering-in-twitter-development"
+  # [String] Where to store the twits registry
+  storage_file: "storage/twitter_accounts.yaml"
+  # [Bool] Ignore the last seen twit. If True will parse always all.
+  ignore_tweets_offset: True
+  # [Integer] How many tweets maximum to retrieve per user. 100 >= x >= 5
+  max_tweets_to_retrieve: 10
+  # [List of Objects] Which accounts to parse
+  accounts:
+    -
+      # [String] User notation, including the @ char
+      user: "@me"
+      # [Bool] Queue the own tweets?
+      tweets: True
+      # [Bool] Queue replies?
+      replies: False
+      # [Bool] Queue the retweets?
+      retweets: True
+      # [Bool] Queue the quotes?
+      quotes: True
 
 publisher:
   # [Bool] Performs a dry run: the queue is untouched and no re-toot is really done

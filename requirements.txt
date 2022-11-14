@@ -1,4 +1,5 @@
 pyyaml
 Mastodon.py==1.5.2
 feedparser
+tweepy
 git+https://github.com/XaviArnaus/python-bundle@v0.0.4

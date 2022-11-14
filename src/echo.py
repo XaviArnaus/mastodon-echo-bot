@@ -2,6 +2,7 @@ from bundle.config import Config
 from .mastodon_helper import MastodonHelper
 from .parsers.mastodon_parser import MastodonParser
 from .parsers.feed_parser import FeedParser
+from .parsers.twitter_parser import TwitterParser
 from .publisher import Publisher
 import logging
 
@@ -35,6 +36,11 @@ class Echo:
             # and merges the toots to the already existing queue
             feed_parser = FeedParser(self._config)
             feed_parser.parse()
+
+            # Parses the defined twitter accounts
+            # and merges the toots to the already existing queue
+            twitter_parser = TwitterParser(self._config)
+            twitter_parser.parse()
 
             # Read from the queue the toots to publish
             # and do so according to the config parameters

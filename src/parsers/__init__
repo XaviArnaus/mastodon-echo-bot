@@ -1,7 +1,9 @@
 from .mastodon_parser import MastodonParser
 from .feed_parser import FeedParser
+from .twitter_parser import TwitterParser
 
 __all__ = [
     "MastodonParser",
-    "FeedParser"
+    "FeedParser",
+    "TwitterParser"
 ]
