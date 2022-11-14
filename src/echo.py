@@ -16,8 +16,11 @@ class Echo:
     def run(self) -> None:
         '''
         Full run
-        - It spies all registered accounts and queues toots
-        - Re-toots the whole queue or just the older toot, according to the config.
+        - Parses all registered mastodon accounts and RSS feeds
+        - Adds al selected content to a queue to be published
+        - Publishes the queue, one each run or all in one shot
+
+        Set the behaviour in the config.yaml
         '''
         try:
             # All actions are done under a Mastodon API instance

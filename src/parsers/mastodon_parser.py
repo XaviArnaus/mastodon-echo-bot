@@ -5,11 +5,7 @@ import logging
 
 class MastodonParser:
     '''
-    Spy
-
-    This class is responsible to go through the toots from the registered accounts
-    and write in a queue list the IDs of the own posts that are no answers and/or re-toots (according to the config file).
-
+    Parses the toots from the registered accounts and feed the queue list of toots to publish.
     '''
     def __init__(self, config: Config) -> None:
         self._config = config
@@ -22,9 +18,9 @@ class MastodonParser:
         toots_queue = []
 
         # Do we have accounts defined?
-        accounts_params = self._config.get("spy.accounts", None)
+        accounts_params = self._config.get("mastodon_parser.accounts", None)
         if not accounts_params:
-            self._logger.info("No accounts registered to spy, skipping,")
+            self._logger.info("No accounts registered to parse, skipping,")
             return
 
         # For each user in the config
@@ -40,7 +36,7 @@ class MastodonParser:
                 self._logger.info("Reusing stored data for %s", account_params["user"])
                 account_id = user["id"]
 
-                if not self._config.get("spy.ignore_toots_offset") \
+                if not self._config.get("mastodon_parser.ignore_toots_offset") \
                     and user["last_seen_toot"]:
                     last_seen_toot = user["last_seen_toot"]
             else:
@@ -74,7 +70,7 @@ class MastodonParser:
             for toot in toots:
 
                 # Is visibility matching?
-                if self._config.get("spy.only_public_visibility"):
+                if self._config.get("mastodon_parser.only_public_visibility"):
                     if toot.visibility != "public":
                         continue
 

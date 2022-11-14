@@ -11,9 +11,7 @@ import re
 
 class FeedParser:
     '''
-    FeedParser
-
-    This class is responsible to go through the posts from the registered RSS feeds
+    Parses the posts from the registered RSS feeds
     and write in a queue list the content and other valuable data of the posts to toot
 
     '''
