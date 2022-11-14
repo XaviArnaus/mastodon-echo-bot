@@ -21,8 +21,14 @@ class Spy:
         # This will contain the queue to re-toot
         toots_queue = []
 
+        # Do we have accounts defined?
+        accounts_params = self._config.get("spy.accounts", None)
+        if not accounts_params:
+            self._logger.info("No accounts registered to spy, skipping,")
+            return
+
         # For each user in the config
-        for account_params in self._config.get("spy.accounts", []):
+        for account_params in accounts_params:
 
             account_id = None
             last_seen_toot = None
