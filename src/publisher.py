@@ -2,7 +2,6 @@ from bundle.config import Config
 from bundle.storage import Storage
 from mastodon import Mastodon
 import logging
-from bundle.debugger import dd
 
 class Publisher:
     '''
@@ -20,7 +19,6 @@ class Publisher:
     def _execute_action(self, toot: dict) -> dict:
         if not self._config.get("publisher.dry_run"):
             if "action" in toot and toot["action"]:
-                dd(toot)
                 if toot["action"] == "reblog":
                     self._logger.info("Retooting post %d", toot["id"])
                     return self._mastodon.status_reblog(

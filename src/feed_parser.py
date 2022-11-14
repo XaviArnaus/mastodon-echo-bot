@@ -9,7 +9,6 @@ from time import mktime
 import feedparser
 import logging
 import re
-from bundle.debugger import dd
 
 class FeedParser:
     '''
@@ -118,7 +117,7 @@ class FeedParser:
                     **toot,
                     **{"action": "new"}
                 })
-            dd(saved_queue)
+
             self._logger.info("Ensuring that the queue is sorted by date ASC and without duplications")
             saved_queue = sorted(saved_queue, key=lambda x: x["published_at"])
             processed_queue = []
