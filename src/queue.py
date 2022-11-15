@@ -4,21 +4,51 @@ import logging
 
 class Queue:
 
+    _queue = []
+
     def __init__(self, config: Config) -> None:
         self._config = config
         self._logger = logging.getLogger(config.get("logger.name"))
         self._toots_queue = Storage(self._config.get("toots_queue_storage.file"))
-
-    def update(self, new_toots: list) -> None:
-        self._logger.info("Reading queue")
-        saved_queue = self._toots_queue.get("queue", [])
-        self._logger.info("Adding %d to the queue", len(new_toots))
-        for toot in new_toots:
-            saved_queue.append(toot)
-        self._logger.info("Ensuring that the queue is sorted by date ASC and without duplications")
-        saved_queue = sorted(saved_queue, key=lambda x: x["published_at"])
-        processed_queue = []
-        [processed_queue.append(x) for x in saved_queue if x not in processed_queue]
+        self._queue = self._toots_queue.get("queue", [])
+    
+    def append(self, item = dict) -> None:
+        self._queue.append(item)
+    
+    def sort_by_date(self) -> None:
+        self._logger.info("Sorting queue by date ASC")
+        self._queue = sorted(self._queue, key=lambda x: x["published_at"])
+    
+    def deduplicate(self) -> None:
+        self._logger.info("Deduplicating queue")
+        new_queue = []
+        [new_queue.append(x) for x in self._queue if x not in new_queue]
+        self._queue = new_queue
+    
+    def save(self) -> None:
         self._logger.info("Saving the queue")
-        self._toots_queue.set("queue", processed_queue)
+        self._toots_queue.set("queue", self._queue)
         self._toots_queue.write_file()
+    
+    def update(self) -> None:
+        self.sort_by_date()
+        self.deduplicate()
+        self.save()
+    
+    def is_empty(self) -> bool:
+        return False if self._queue else True
+    
+    def get_all(self) -> list:
+        return self._queue
+    
+    def clean(self) -> None:
+        self._queue = []
+    
+    def pop(self) -> dict:
+        if self.is_empty():
+            if not self._config.get("publisher.dry_run"):
+                return self._queue.pop(0)
+            else:
+                return self._queue[0]
+        else:
+            return None

@@ -132,8 +132,6 @@ class TwitterParser:
         }
 
     def parse(self) -> None:
-        # This will contain the queue to toot
-        toots_queue = []
 
         # Do we have accounts defined?
         accounts_params = self._config.get("twitter_parser.accounts", None)
@@ -208,7 +206,9 @@ class TwitterParser:
                 # Is an own tweet?
                 if new_toot["type"] == "own" \
                     and account_params["tweets"]:
-                    toots_queue.append(self._format_toot(new_toot, user))
+                    self._queue.append(
+                        self._format_toot(new_toot, user)
+                    )
 
                 # Is a reply?
                 if new_toot["type"] == "reply" \
@@ -217,7 +217,9 @@ class TwitterParser:
                         client,
                         new_toot
                     )
-                    toots_queue.append(self._format_toot(new_toot, user))
+                    self._queue.append(
+                        self._format_toot(new_toot, user)
+                    )
 
                 # Is a retweet?
                 if new_toot["type"] == "retweet" \
@@ -226,7 +228,9 @@ class TwitterParser:
                         client,
                         new_toot
                     )
-                    toots_queue.append(self._format_toot(new_toot, user))
+                    self._queue.append(
+                        self._format_toot(new_toot, user)
+                    )
 
                 # Is a quote?
                 if new_toot["type"] == "quote" \
@@ -235,7 +239,9 @@ class TwitterParser:
                         client,
                         new_toot
                     )
-                    toots_queue.append(self._format_toot(new_toot, user))
+                    self._queue.append(
+                        self._format_toot(new_toot, user)
+                    )
 
             # Update our storage with what we found
             self._logger.debug("Updating gathered account data for %s", user["user"])
@@ -251,8 +257,8 @@ class TwitterParser:
             self._logger.info("Storing data for %s", user["user"])
             self._twitter_accounts.write_file()
 
-        # Update the toots queue, by adding the new ones at the end of the list
-        self._queue.update(toots_queue)
+        # Update the queue storage
+        self._queue.update()
 
         
             

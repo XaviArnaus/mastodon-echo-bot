@@ -15,8 +15,6 @@ class MastodonParser:
         self._queue = Queue(config)
 
     def parse(self, mastodon: Mastodon) -> None:
-        # This will contain the queue to re-toot
-        toots_queue = []
 
         # Do we have accounts defined?
         accounts_params = self._config.get("mastodon_parser.accounts", None)
@@ -86,13 +84,13 @@ class MastodonParser:
                     and not received_toot.in_reply_to_account_id \
                         and account_params["toots"]:
                     # queue to publish if the config say so
-                    toots_queue.append(toot)
+                    self._queue.append(toot)
 
                 # Is a retoot?
                 if received_toot.reblog \
                     and account_params["retoots"]:
                     # queue to publish if the config say so
-                    toots_queue.append(toot)
+                    self._queue.append(toot)
 
             # Update our storage with what we found
             self._logger.debug("Updating gathered account data for %s", account_params["user"])
@@ -107,4 +105,4 @@ class MastodonParser:
             self._accounts_storage.write_file()
 
         # Update the toots queue, by adding the new ones at the end of the list
-        self._queue.update(toots_queue)
+        self._queue.update()

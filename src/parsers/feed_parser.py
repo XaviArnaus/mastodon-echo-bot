@@ -35,9 +35,7 @@ class FeedParser:
         return f"{origin}:\n\t{title}\n\n{summary}{link}"
 
     def parse(self) -> None:
-        # This will contain the queue to toot
-        toots_queue = []
-
+        
         # Do we have sites defined?
         sites_params = self._config.get("feed_parser.sites", None)
         if not sites_params:
@@ -91,12 +89,14 @@ class FeedParser:
                     continue
                 
                 # Prepare the new toot
-                toots_queue.append({
-                    "status": self._format_toot(post, site["name"]),
-                    "language": metadata["language"],
-                    "published_at": post_date,
-                    "action": "new"
-                })
+                self._queue.append(
+                    {
+                        "status": self._format_toot(post, site["name"]),
+                        "language": metadata["language"],
+                        "published_at": post_date,
+                        "action": "new"
+                    }
+                )
 
                 # Update the last post seen
                 last_published_post_date = post_date
@@ -113,6 +113,6 @@ class FeedParser:
             self._feeds_storage.write_file()
             
         # Update the toots queue, by adding the new ones at the end of the list
-        self._queue.update(toots_queue)
+        self._queue.update()
             
             
