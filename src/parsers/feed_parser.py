@@ -1,5 +1,6 @@
 from bundle.config import Config
 from bundle.storage import Storage
+from ..queue import Queue
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from dateutil import parser
@@ -20,6 +21,7 @@ class FeedParser:
         self._logger = logging.getLogger(config.get("logger.name"))
         self._toots_queue = Storage(self._config.get("toots_queue_storage.file"))
         self._feeds_storage = Storage(self._config.get("feed_parser.storage_file"))
+        self._queue = Queue(config)
 
     def _format_toot(self, post: dict, origin: str) -> str:
 
@@ -92,7 +94,8 @@ class FeedParser:
                 toots_queue.append({
                     "status": self._format_toot(post, site["name"]),
                     "language": metadata["language"],
-                    "published_at": post_date
+                    "published_at": post_date,
+                    "action": "new"
                 })
 
                 # Update the last post seen
@@ -110,24 +113,6 @@ class FeedParser:
             self._feeds_storage.write_file()
             
         # Update the toots queue, by adding the new ones at the end of the list
-        if not toots_queue:
-            self._logger.info("No new toots to queue, skipping.")
-        else:
-            self._logger.info("Reading queue")
-            saved_queue = self._toots_queue.get("queue", [])
-            self._logger.info("Adding %d to the queue", len(toots_queue))
-            for toot in toots_queue:
-                saved_queue.append({
-                    **toot,
-                    **{"action": "new"}
-                })
-
-            self._logger.info("Ensuring that the queue is sorted by date ASC and without duplications")
-            saved_queue = sorted(saved_queue, key=lambda x: x["published_at"])
-            processed_queue = []
-            [processed_queue.append(x) for x in saved_queue if x not in processed_queue]
-            self._logger.info("Saving the queue")
-            self._toots_queue.set("queue", processed_queue)
-            self._toots_queue.write_file()
+        self._queue.update(toots_queue)
             
             

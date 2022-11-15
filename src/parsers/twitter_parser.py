@@ -1,5 +1,6 @@
 from bundle.config import Config
 from bundle.storage import Storage
+from ..queue import Queue
 from datetime import timedelta
 from tweepy import Client
 import tweepy as twitter
@@ -21,8 +22,8 @@ class TwitterParser:
     def __init__(self, config: Config) -> None:
         self._config = config
         self._logger = logging.getLogger(config.get("logger.name"))
-        self._toots_queue = Storage(self._config.get("toots_queue_storage.file"))
         self._twitter_accounts = Storage(self._config.get("twitter_parser.storage_file"))
+        self._queue = Queue(config)
 
     def _format_toot(self, toot: dict, account: str) -> str:
 
@@ -68,7 +69,8 @@ class TwitterParser:
             "id": tweet["id"],
             "text": tweet["text"],
             "published_at": tweet["created_at"],
-            "language": tweet["lang"]
+            "language": tweet["lang"],
+            "action": "new"
         }
  
         if "referenced_tweets" in tweet and tweet["referenced_tweets"]:
@@ -250,25 +252,7 @@ class TwitterParser:
             self._twitter_accounts.write_file()
 
         # Update the toots queue, by adding the new ones at the end of the list
-        if not toots_queue:
-            self._logger.info("No new toots to queue, skipping.")
-        else:
-            self._logger.info("Reading queue")
-            saved_queue = self._toots_queue.get("queue", [])
-            self._logger.info("Adding %d to the queue", len(toots_queue))
-            for toot in toots_queue:
-                saved_queue.append({
-                    **toot,
-                    **{"action": "new"}
-                })
-
-            self._logger.info("Ensuring that the queue is sorted by date ASC and without duplications")
-            saved_queue = sorted(saved_queue, key=lambda x: x["published_at"])
-            processed_queue = []
-            [processed_queue.append(x) for x in saved_queue if x not in processed_queue]
-            self._logger.info("Saving the queue")
-            self._toots_queue.set("queue", processed_queue)
-            self._toots_queue.write_file()
+        self._queue.update(toots_queue)
 
         
             

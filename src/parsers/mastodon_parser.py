@@ -1,6 +1,7 @@
 from bundle.config import Config
 from bundle.storage import Storage
 from mastodon import Mastodon
+from ..queue import Queue
 import logging
 
 class MastodonParser:
@@ -10,8 +11,8 @@ class MastodonParser:
     def __init__(self, config: Config) -> None:
         self._config = config
         self._logger = logging.getLogger(config.get("logger.name"))
-        self._accounts_storage = Storage(self._config.get("mastodon_parser.storage_file"))
-        self._toots_queue = Storage(self._config.get("toots_queue_storage.file"))
+        self._accounts_storage = Storage(config.get("mastodon_parser.storage_file"))
+        self._queue = Queue(config)
 
     def parse(self, mastodon: Mastodon) -> None:
         # This will contain the queue to re-toot
@@ -67,22 +68,28 @@ class MastodonParser:
             new_last_seen_toot = toots[0].id
 
             # For each status
-            for toot in toots:
+            for received_toot in toots:
+
+                toot = {
+                    "id": toot.id,
+                    "published_at": toot.created_at,
+                    "action": "reblog"
+                }
 
                 # Is visibility matching?
                 if self._config.get("mastodon_parser.only_public_visibility"):
-                    if toot.visibility != "public":
+                    if received_toot.visibility != "public":
                         continue
 
                 # Is an own status?
-                if not toot.in_reply_to_id \
-                    and not toot.in_reply_to_account_id \
+                if not received_toot.in_reply_to_id \
+                    and not received_toot.in_reply_to_account_id \
                         and account_params["toots"]:
                     # queue to publish if the config say so
                     toots_queue.append(toot)
 
                 # Is a retoot?
-                if toot.reblog \
+                if received_toot.reblog \
                     and account_params["retoots"]:
                     # queue to publish if the config say so
                     toots_queue.append(toot)
@@ -100,24 +107,4 @@ class MastodonParser:
             self._accounts_storage.write_file()
 
         # Update the toots queue, by adding the new ones at the end of the list
-        if not toots_queue:
-            self._logger.info("No new toots to queue, skipping.")
-        else:
-            self._logger.info("Reading queue")
-            saved_queue = self._toots_queue.get("queue", [])
-            self._logger.info("Adding %d to the queue", len(toots_queue))
-            for toot in toots_queue:
-                # We only want the ID of the toot and the timestamp.
-                # Later on we will load it and reblog it.
-                saved_queue.append({
-                    "id": toot.id,
-                    "published_at": toot.created_at,
-                    "action": "reblog"
-                })
-            self._logger.info("Ensuring that the queue is sorted by date ASC and without duplications")
-            saved_queue = sorted(saved_queue, key=lambda x: x["published_at"])
-            processed_queue = []
-            [processed_queue.append(x) for x in saved_queue if x not in processed_queue]
-            self._logger.info("Saving the queue")
-            self._toots_queue.set("queue", processed_queue)
-            self._toots_queue.write_file()
+        self._queue.update(toots_queue)
