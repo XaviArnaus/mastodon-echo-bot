@@ -32,20 +32,20 @@ class TwitterParser:
         if "referenced" in toot and "user" in toot["referenced"]:
             original_username = toot["referenced"]["user"]["username"]
             original_name = toot["referenced"]["user"]["name"]
+            original_text = toot["referenced"]["text"]
 
         if toot["type"] == "retweet":
             # Remove the "RT @username: "
             text = text.replace(f"RT @{original_username}: ", "")
 
             # Add an own text:
-            text = f"{account_name} ({account_username}@twitter)\n\tha retuitejat de {original_name} (@{original_username}@twitter):\n\n{text}"
+            text = f"{account_name} ({account_username}@twitter)\n\tha retuitejat de {original_name} (@{original_username}@twitter):\n\n{original_text}"
         elif toot["type"] == "quote":
-            quoted_text = toot["referenced"]["text"]
             # Remove the quoted URL
             text_without_url = re.sub(self.URL_REGEX, "", text)
 
             # Add an own text:
-            text = f"{account_name} ({account_username}@twitter) ha dit:\n{text_without_url}\n\n\tcitant a {original_name} (@{original_username}@twitter):\n{quoted_text}"
+            text = f"{account_name} ({account_username}@twitter) ha dit:\n{text_without_url}\n\n\tcitant a {original_name} (@{original_username}@twitter):\n{original_text}"
         elif toot["type"] == "reply":
             # Remove the "@username: "
             text = text.replace(f"{original_username} ", "")
