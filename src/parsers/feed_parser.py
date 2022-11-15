@@ -36,8 +36,14 @@ class FeedParser:
         # This will contain the queue to toot
         toots_queue = []
 
+        # Do we have sites defined?
+        sites_params = self._config.get("feed_parser.sites", None)
+        if not sites_params:
+            self._logger.info("No sites registered to parse, skipping,")
+            return
+
         # For each user in the config
-        for site in self._config.get("feed_parser.sites"):
+        for site in sites_params:
 
             self._logger.info("Getting possible stored data for %s", site["name"])
             site_data = self._feeds_storage.get_hashed(site["url"], None)
