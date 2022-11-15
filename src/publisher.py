@@ -1,7 +1,7 @@
 from bundle.config import Config
 from bundle.storage import Storage
+from bundle.downloader import download_media_from_url
 from mastodon import Mastodon
-from .downloader import download_media_from_url
 import logging
 
 class Publisher:

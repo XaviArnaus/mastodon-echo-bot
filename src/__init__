@@ -1,11 +1,9 @@
 from .echo import Echo
 from .publisher import Publisher
 from .mastodon_helper import MastodonHelper
-from .downloader import download_media_from_url
 
 __all__ = [
     "Echo",
     "Publisher",
-    "MastodonHelper",
-    "download_media_from_url"
+    "MastodonHelper"
 ]
