@@ -88,10 +88,11 @@ twitter_parser:
       quotes: True
 
 publisher:
+# [String] Where to download the media to
+  media_storage: "storage/media/"
   # [Bool] Performs a dry run: the queue is untouched and no re-toot is really done
   # Check the logs/stdout to see the results
   dry_run: True
-
   # [Bool] Publish only the older post
   # Useful if we have this boot executed often, so publishes a single toot in every run
   only_older_toot: True

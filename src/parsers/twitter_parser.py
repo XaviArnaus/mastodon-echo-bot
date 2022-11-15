@@ -15,6 +15,7 @@ class TwitterParser:
     '''
 
     TWEET_FIELDS = ["lang", "created_at", "referenced_tweets", "id", "text"]
+    MEDIA_FIELDS = ["height", "media_key", "preview_image_url", "type", "url", "width", "alt_text"]
     URL_REGEX = "(http|ftp|https):\/\/([\w\-_]+(?:(?:\.[\w\-_]+)+))([\w\-\.,@?^=%&:/~\+#]*[\w\-\@?^=%&/~\+#])?"
 
     def __init__(self, config: Config) -> None:
@@ -55,6 +56,8 @@ class TwitterParser:
         elif toot["type"] == "own":
             text = f"{account_name} ({account_username}@twitter) ha dit:\n\n{text}"
 
+        # What about media
+
         # Now set the field that is used in the publisher
         toot["status"] = text
 
@@ -76,7 +79,25 @@ class TwitterParser:
                 result["type"] = "retweet" if tweet["referenced_tweets"][0]["type"] == "retweeted" else "quote"
         else:
             result["type"] = "own"
-
+        
+        return result
+    
+    def _parse_media(self, data: dict) -> dict:
+        result = {
+            "media": []
+        }
+        if data and "media" in data:
+            for item in data["media"]:
+                result["media"].append(
+                    {
+                        "width": item["width"] if "width" in item else None,
+                        "height": item["height"] if "height" in item else None,
+                        "url": item["url"],
+                        "alt_text": item["alt_text"] if "alt_text" in item else None,
+                        "type": item["type"],
+                        "duration_ms": item["duration_ms"] if "duration_ms" in item else None
+                    }
+                )
         return result
     
     def _resolve_tweet_reference(self, client: Client, tweet_data: dict) -> dict:
@@ -84,8 +105,9 @@ class TwitterParser:
         referenced = client.get_tweet(
             id=tweet_data["reference_id"],
             tweet_fields=self.TWEET_FIELDS,
+            media_fields=self.MEDIA_FIELDS,
             user_fields=["id", "name", "username", "url", "profile_image_url"],
-            expansions=["referenced_tweets.id", "referenced_tweets.id.author_id"]
+            expansions=["referenced_tweets.id", "referenced_tweets.id.author_id", "attachments.media_keys"]
         )
 
         return {
@@ -103,6 +125,7 @@ class TwitterParser:
                         "profile_image_url": referenced[1]["users"][0]["profile_image_url"]
                     }
                 },
+            **self._parse_media(referenced[1])
             }
         }
 
@@ -160,7 +183,9 @@ class TwitterParser:
                 user["id"],
                 max_results=self._config.get("twitter_parser.max_tweets_to_retrieve", 10),
                 tweet_fields=self.TWEET_FIELDS,
-                start_time=last_seen_tweet_date + timedelta(minutes=1) if last_seen_tweet_date else None
+                media_fields=self.MEDIA_FIELDS,
+                start_time=last_seen_tweet_date + timedelta(minutes=1) if last_seen_tweet_date else None,
+                expansions=["attachments.media_keys"]
             )
 
             # If no toots, just go for the next account

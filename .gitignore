@@ -1,6 +1,7 @@
 log/*
-!*/.keep
 **/__pycache__/
 *.secret
 storage/*.yaml
+storage/media/*
 config.yaml
+!**/.keep
