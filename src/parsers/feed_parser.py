@@ -1,5 +1,6 @@
 from bundle.config import Config
 from bundle.storage import Storage
+from bundle.media import Media
 from ..queue import Queue
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
@@ -9,6 +10,7 @@ from time import mktime
 import feedparser
 import logging
 import re
+from ..media import Media
 
 class FeedParser:
     '''
@@ -16,12 +18,16 @@ class FeedParser:
     and write in a queue list the content and other valuable data of the posts to toot
 
     '''
+    CLEANR = re.compile('<.*?>|&([a-z0-9]+|#[0-9]{1,6}|#x[0-9a-f]{1,6});')
+    MAX_SUMMARY_LENGTH = 300
+
     def __init__(self, config: Config) -> None:
         self._config = config
         self._logger = logging.getLogger(config.get("logger.name"))
         self._toots_queue = Storage(self._config.get("toots_queue_storage.file"))
         self._feeds_storage = Storage(self._config.get("feed_parser.storage_file"))
         self._queue = Queue(config)
+        self._media = Media()
 
     def _format_toot(self, post: dict, origin: str) -> str:
 
@@ -31,8 +37,31 @@ class FeedParser:
             title = " ".join([word.capitalize() for word in title.lower().split(" ")])
         link = post["link"]
         summary = post["summary"] + "\n\n" if "summary" in post and post["summary"] and post["summary"] != "" else ""
+        summary = re.sub(self.CLEANR, '', summary)
+        summary = summary.replace("\n\n\n", "\n\n")
+        summary = re.sub("\s+", ' ', summary)
+        summary = (summary[:self.MAX_SUMMARY_LENGTH] + '...') if len(summary) > self.MAX_SUMMARY_LENGTH+3 else summary
         
-        return f"{origin}:\n\t{title}\n\n{summary}{link}"
+        return f"{origin}:\n\t{title}\n\n{summary}\n{link}"
+    
+    def _parse_media(self, post: dict) -> dict:
+
+        # Initiate
+        result = []
+
+        # Discover if we have a link to an image
+        images = self._media.get_media_url_from_text(post["summary"])
+
+        if images:
+            for image_object in images:
+                result.append(
+                    {
+                        "url": image_object["url"],
+                        "alt_text": image_object["alt_text"] if image_object["alt_text"] else None
+                    }
+                )
+
+        return result
 
     def parse(self) -> None:
         
@@ -89,9 +118,11 @@ class FeedParser:
                     continue
                 
                 # Prepare the new toot
+                media = self._parse_media(post)
                 self._queue.append(
                     {
                         "status": self._format_toot(post, site["name"]),
+                        "media": media if media else None,
                         "language": metadata["language"],
                         "published_at": post_date,
                         "action": "new"
