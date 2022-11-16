@@ -10,7 +10,6 @@ from time import mktime
 import feedparser
 import logging
 import re
-from ..media import Media
 
 class FeedParser:
     '''
