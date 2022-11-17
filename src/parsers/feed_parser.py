@@ -5,11 +5,13 @@ from ..queue import Queue
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from dateutil import parser
+from bs4 import BeautifulSoup
 import pytz
 from time import mktime
 import feedparser
 import logging
 import re
+from bundle.debugger import dd
 
 class FeedParser:
     '''
@@ -36,7 +38,7 @@ class FeedParser:
             title = " ".join([word.capitalize() for word in title.lower().split(" ")])
         link = post["link"]
         summary = post["summary"] + "\n\n" if "summary" in post and post["summary"] and post["summary"] != "" else ""
-        summary = re.sub(self.CLEANR, '', summary)
+        summary = ''.join(BeautifulSoup(summary, "html.parser").findAll(text=True))
         summary = summary.replace("\n\n\n", "\n\n")
         summary = re.sub("\s+", ' ', summary)
         summary = (summary[:self.MAX_SUMMARY_LENGTH] + '...') if len(summary) > self.MAX_SUMMARY_LENGTH+3 else summary
@@ -90,7 +92,7 @@ class FeedParser:
             posts = sorted(parsed_site["entries"], key=lambda x: x["published_parsed"])
 
             # Keep track of the post seen.
-            urls_seen = site_data["urls_seen"] if "urls_seen" in site_data else []
+            urls_seen = site_data["urls_seen"] if site_data and "urls_seen" in site_data else []
 
             for post in posts:
 
