@@ -97,6 +97,7 @@ class FeedParser:
                 # Check if this post was already seen
                 if post["link"] in urls_seen:
                     self._logger.info("Discarding post: already seen %s", post["title"])
+                    continue
                 else:
                     urls_seen.append(post["link"])
 
