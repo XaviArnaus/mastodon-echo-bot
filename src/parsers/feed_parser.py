@@ -89,11 +89,16 @@ class FeedParser:
             self._logger.info("Sorting %d entries ASC", len(parsed_site["entries"]))
             posts = sorted(parsed_site["entries"], key=lambda x: x["published_parsed"])
 
-            # Keep track of the last post date seen.
-            # Defaults to the current, will be updated with any new one
-            last_published_post_date = site_data["last_published_post_date"] if site_data and "last_published_post_date" in site_data else None
+            # Keep track of the post seen.
+            urls_seen = site_data["urls_seen"] if "urls_seen" in site_data else []
 
             for post in posts:
+
+                # Check if this post was already seen
+                if post["link"] in urls_seen:
+                    self._logger.info("Discarding post: already seen %s", post["title"])
+                else:
+                    urls_seen.append(post["link"])
 
                 # Calculate post date
                 post_date = None
@@ -109,12 +114,6 @@ class FeedParser:
                 if datetime.now().replace(tzinfo=pytz.UTC) - relativedelta(months=6) > post_date:
                     self._logger.info("Discarding post: too old %s", post_date)
                     continue
-
-                # We don't want to repeat posts that we saw in previous parsings
-                if site_data and "last_published_post_date" in site_data \
-                    and site_data["last_published_post_date"] >= post_date:
-                    self._logger.info("Discarding post: already seen %s", post_date)
-                    continue
                 
                 # Prepare the new toot
                 media = self._parse_media(post)
@@ -128,15 +127,12 @@ class FeedParser:
                     }
                 )
 
-                # Update the last post seen
-                last_published_post_date = post_date
-
             # Update our storage with what we found
             self._logger.debug("Updating gathered site data for %s", site["name"])
             self._feeds_storage.set_hashed(
                 site["url"],
                 {
-                    "last_published_post_date": last_published_post_date
+                    "urls_seen": urls_seen
                 }
             )
             self._logger.info("Storing data for %s", site["name"])
