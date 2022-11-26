@@ -49,6 +49,13 @@ mastodon_parser:
       toots: False
       # [Bool] Queue the retoots done?
       retoots: True
+      # [String|None]
+      keywords_filter_profile: "talamanca"
+      # [Bool] Automatically follow this account if the bot is not doing so already?
+      # This helps retreiving toots from federated server's accounts,
+      #   when the account is not being followed yet in this server.
+      # The follow will be WITH reblogs
+      auto_follow: True
 
 # The Feed Parser, in charge to query the defined feeds and get their posts
 feed_parser:
@@ -97,4 +104,23 @@ publisher:
   # Useful if we have this boot executed often, so publishes a single toot in every run
   only_older_toot: True
 
-
+keywords_filter:
+  # [Dict] Profiles that contain the rules for keywords filtering
+  profiles:
+    # Profiles as dict
+    "talamanca": 
+        # All strings must be:
+        #  lowercase
+        #  mapped chars (accents, ç -> c, ñ -> n)
+        #  cleaned chars (-.')
+        keywords:
+          - "talamanca"
+          - "mura"
+          - "rocafort"
+          - "navarcles"
+          - "sant fruitos"
+          - "st fruitos"
+          - "montcau"
+          - "bv1221"
+          - "sant llorenc del munt"
+          - "st llorenc"
