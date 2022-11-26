@@ -70,6 +70,8 @@ feed_parser:
       url: "https://www.example.cat/rss/my_feed"
       # [String] 
       language_default: "ca_ES"
+      # [String|None]
+      keywords_filter_profile: "talamanca"
 
 twitter_parser:
   # [String] Bearer token from Twitter.

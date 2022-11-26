@@ -2,6 +2,7 @@ from bundle.config import Config
 from bundle.storage import Storage
 from bundle.media import Media
 from ..queue import Queue
+from .keywords_filter import KeywordsFilter
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from dateutil import parser
@@ -29,6 +30,7 @@ class FeedParser:
         self._feeds_storage = Storage(self._config.get("feed_parser.storage_file"))
         self._queue = Queue(config)
         self._media = Media()
+        self._keywords_filter = KeywordsFilter(config)
 
     def _format_toot(self, post: dict, origin: str) -> str:
 
@@ -75,6 +77,8 @@ class FeedParser:
         # For each user in the config
         for site in sites_params:
 
+            keywords_filter_profile = site["keywords_filter_profile"] if site["keywords_filter_profile"] else None
+
             self._logger.info("Getting possible stored data for %s", site["name"])
             site_data = self._feeds_storage.get_hashed(site["url"], None)
         
@@ -102,6 +106,14 @@ class FeedParser:
                     continue
                 else:
                     urls_seen.append(post["link"])
+                
+                # Only in case that we need to filter per keywords and the filtering bans the content.
+                if keywords_filter_profile and \
+                    not self._keywords_filter.profile_allows_text(
+                        keywords_filter_profile,
+                        post["summary"]):
+                    self._logger.info("Filtering %s per keyword profile '%s', this Feed post is not allowed", site["name"], keywords_filter_profile)
+                    continue
 
                 # Calculate post date
                 post_date = None
