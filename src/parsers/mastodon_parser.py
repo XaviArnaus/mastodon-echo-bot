@@ -72,6 +72,8 @@ class MastodonParser:
                         if not found:
                             self._logger.debug("Registering the following to %s", account_params["user"])
                             mastodon.account_follow(account_id, reblogs=True)
+                            # The federation does not get updated instantly. 
+                            # Toots will appear after some time
 
             # Get the statuses from the given account ID
             self._logger.info("Getting toots from %s since %s", account_params["user"], last_seen_toot if last_seen_toot else "ever")
@@ -90,8 +92,8 @@ class MastodonParser:
             for received_toot in toots:
 
                 toot = {
-                    "id": toot.id,
-                    "published_at": toot.created_at,
+                    "id": received_toot.id,
+                    "published_at": received_toot.created_at,
                     "action": "reblog"
                 }
 

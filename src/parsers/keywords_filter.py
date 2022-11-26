@@ -7,11 +7,11 @@ class KeywordsFilter:
         self._config = config
         self._logger = logging.getLogger(config.get("logger.name"))
     
-    def profile_allows_text(self, text: str, profile: str) -> bool:
-        if profile not in self._config["keywords_filter.profiles"]:
+    def profile_allows_text(self, profile: str, text: str) -> bool:
+        if profile not in self._config.get("keywords_filter.profiles"):
             raise RuntimeError(f"Can find the profile [{profile}] in the config's Keyword Filters")
         
-        keywords = self._config[f"keywords_filter.profiles.{profile}.keywords"]
+        keywords = self._config.get(f"keywords_filter.profiles.{profile}.keywords")
         text = self._clean_text(text)
 
         for keyword in keywords:
