@@ -6,7 +6,6 @@ from tweepy import Client
 import tweepy as twitter
 import logging
 import re
-from bundle.debugger import dd
 
 class TwitterParser:
     '''

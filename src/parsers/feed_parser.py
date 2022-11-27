@@ -12,7 +12,6 @@ from time import mktime
 import feedparser
 import logging
 import re
-from bundle.debugger import dd
 
 class FeedParser:
     '''
