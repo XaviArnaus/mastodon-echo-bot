@@ -31,7 +31,7 @@ class FeedParser:
         self._media = Media()
         self._keywords_filter = KeywordsFilter(config)
 
-    def _format_toot(self, post: dict, origin: str) -> str:
+    def _format_toot(self, post: dict, origin: str, site_options: dict) -> str:
 
         title = post["title"]
         title_only_chars = re.sub("^[A-Za-z]*", "", title)
@@ -43,8 +43,10 @@ class FeedParser:
         summary = summary.replace("\n\n\n", "\n\n")
         summary = re.sub("\s+", ' ', summary)
         summary = (summary[:self.MAX_SUMMARY_LENGTH] + '...') if len(summary) > self.MAX_SUMMARY_LENGTH+3 else summary
+
+        text = f"{origin}:\n" if site_options["show_name"] else ""
         
-        return f"{origin}:\n\t{title}\n\n{summary}\n{link}"
+        return f"{text}\t{title}\n\n{summary}\n\n{link}"
     
     def _parse_media(self, post: dict) -> dict:
 
@@ -76,7 +78,8 @@ class FeedParser:
         # For each user in the config
         for site in sites_params:
 
-            keywords_filter_profile = site["keywords_filter_profile"] if site["keywords_filter_profile"] else None
+            keywords_filter_profile = site["keywords_filter_profile"] \
+                if "keywords_filter_profile" in site and site["keywords_filter_profile"] else None
 
             self._logger.info("Getting possible stored data for %s", site["name"])
             site_data = self._feeds_storage.get_hashed(site["url"], None)
@@ -133,7 +136,7 @@ class FeedParser:
                 media = self._parse_media(post)
                 self._queue.append(
                     {
-                        "status": self._format_toot(post, site["name"]),
+                        "status": self._format_toot(post, site["name"],site),
                         "media": media if media else None,
                         "language": metadata["language"],
                         "published_at": post_date,

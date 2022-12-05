@@ -33,7 +33,8 @@ class MastodonParser:
 
             account_id = None
             last_seen_toot = None
-            keywords_filter_profile = account_params["keywords_filter_profile"] if account_params["keywords_filter_profile"] else None
+            keywords_filter_profile = account_params["keywords_filter_profile"] \
+                if "keywords_filter_profile" in account_params and account_params["keywords_filter_profile"] else None
 
             # Do we have any config relating this user already?
             self._logger.info("Getting possible stored data for %s", account_params["user"])
