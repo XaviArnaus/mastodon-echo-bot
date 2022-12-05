@@ -44,7 +44,7 @@ class FeedParser:
         summary = re.sub("\s+", ' ', summary)
         summary = (summary[:self.MAX_SUMMARY_LENGTH] + '...') if len(summary) > self.MAX_SUMMARY_LENGTH+3 else summary
 
-        text = f"{origin}:\n" if site_options["show_name"] else ""
+        text = f"{origin}:\n" if "show_name" in site_options and site_options["show_name"] else ""
         
         return f"{text}\t{title}\n\n{summary}\n\n{link}"
     
