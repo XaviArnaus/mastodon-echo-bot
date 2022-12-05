@@ -72,6 +72,8 @@ feed_parser:
       language_default: "ca_ES"
       # [String|None]
       keywords_filter_profile: "talamanca"
+      # [Bool] Shows an initial line wit the name of the site like "{name}:\n"
+      show_name: True
 
 twitter_parser:
   # [String] Bearer token from Twitter.

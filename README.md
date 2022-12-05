@@ -1,21 +1,56 @@
 # Mastodon Echo bot
-I am a bot that spies the registered accounts for his/her/its reblogs.
+I am a bot for Mastodon instances that publishes content from 3 different sources:
+* RSS feeds
+* Other Mastodon accounts
+* Twitter accounts
 
-The assumtion is that these accounts would have curated these re-toots and therefor they are good content.
+What features do I provide?
+* **Super detailed setup via a config file**: Take full control of the execution
+* **No DB is needed**: Everything is done with files
+* **Anti-flood publishing**: Publish one post in every execution following a queue
+* **Keyword filtering**: Filter out posts from Mastodon or RSS Feeds that do not contain a set of words 
+* **Images supported**: Also publish the images that come with the original post.
+* **Exhaustive logging**: Log everything that is happening while executing, so you can monitor what's going on
+* **Dry Run support**: You can set it up and run it without any actual publishing until you're happy with the result
+* **Keep track of what is already captured**: To avoid repeating published posts!
 
-Once these toots are collected into a queue, the bot will re-toot them.
+# Explain me more
+This bot is made with ❤️ from Düsseldorf and It is designed to capture specific content from defined sources and publish it through a single bot account in Mastodon in a localized and topic specific instance.
 
-## Why is this useful?
-I have an account in one server, where I enjoy my time and do not intend to leave. I do re-toot for what I find interesting therefor I am actually curating content on-the go.
+## Configuration File
+It is a Yaml that contains all the possible options, feeds and Mastodon & Twitter accounts to follow. All options come commented.
+* Make sure you create your execution copy from [the example shipped](./config.yaml.dist): it has to be called `config.yaml`
 
-Now I open a new server where there is yet no content and no live. The only way to get the Federation timeline alive is by having interactions, so I have this bot to have the new server building relationships with other severs and other accounts.
+## No DB is needed
+Why to use an infrastructure that not necessarily comes for granted when everything can be achieved with files? This way you can easily monitor and adjust anyting quickly.
 
-## Re-toot kindly
-The bot is meant to be executed scheduled through a cron every 15 or 30 minutes. In every run it gathers toots into a queue and is intended to publish only one re-toot, the older of the list.
+## Anti-flood publishing: be kind
+The bot is meant to be executed scheduled through a cron every 15 or 30 minutes. In every run it gathers posts into a queue and is intended to publish only one re-toot, the older first.
 
-Why? Ide idea is to avoid having a large amount of re-toots coming out of nowhere. Humans that care about content usually do not re-toot so often, letting the bot time to catch up with the queue.
+Why? The idea is to avoid flooding, having a large amount of posts coming out of nowhere. Be kind with your neighbours in your instance :-)
 
-You can of course change this behaviour from the config file and simply publish everything in every run.
+You can change this behaviour from [the config file](./config.yaml.dist#L109) and simply publish everything queued in every run.
+
+## Keyword Filtering
+This allows you to filter out all content that does not contain any of the specified words.
+It works as per *filtering profiles*, defining a profile only once that contains all the words to analyse, and applying this profile to the RSS feeds and Mastodon accounts.
+
+Create a profile in [this section of the config file](./config.yaml.dist#L111) and define then the profile to be used [in your feed](./config.yaml.dist#L74) or [your Mastodon setup](./config.yaml.dist#L53).
+
+The Twitter accounts are still not covered by this feature.
+
+## Images support
+The images that come with the Mastodon, Twitter and RSS posts can bring images, that will be downloaded and re-upload to the published post, preserving any description that they could have
+
+## Exhaustive logging
+A bot is somethig that executes in loneliness, so it's cool to have the work logged into a file with several logging degrees so that we can monitor how is it behaving. In [the config file](./config.yaml.dist#L16) one can also make it display the log while running for these debugging situations.
+
+## Dry Run
+When setting up the bot you may want to avoid to publish the queue, while you're adjusting the parameters. With this Dry Run option it can run and gather content and fill the queues without the fear of flooding your Mastodon account with test messages. [Here in the config file](./config.yaml.dist#L106) you can control this option, that **comes activated by default**!
+
+## Keep track of what is already captured
+The bot registers every new contentn in every run, so that it avoids repeating the actions over the same items. This is useful as some sources mark an old post as new and other bots may re-publish it. 
+As usual this can be turned off and repeat all processing for every content in every run, useful while developing. 
 
 # Installation
 As this is a bot that connects as an app to a given Mastodon server, it can be deployed anywhere with an internet connection, from a hosting to a Raspberry Pi.
@@ -42,7 +77,7 @@ As this is a bot that connects as an app to a given Mastodon server, it can be d
 ```
 $ git clone git@github.com:XaviArnaus/mastodon-echo-bot.git
 ```
-4. Discover which is the python3 binary your host is using. In case it is `python3` and not `python`, you'll have to update the reference at the top of the `Makefile` file.
+4. Discover which is the python3 binary your host is using. This bot uses `python3` to run, and if it's not your case, you'll have to update the reference at the top of the `Makefile` file.
 5. Ensure that your system has `pip`. Otherwise install it. i.e. for Debian:
 ```
 $ sudo apt install pip
@@ -61,7 +96,8 @@ $ cp config.yaml.dist config.yaml
     * root of the app
     * log/
     * storage/
-10. Create the app, this is done just one time
+    * storage/media/
+10. Create the app, this is done just one time to get the credentials
 ```
 $ make create_app
 ```
@@ -93,6 +129,3 @@ $ crontab -e
 ```
 0,15,30,45 * * * * /local/mastodon/bots/mastodon-echo-bot/make run
 ```
-
-## Dry Run
-Keep in mind that you can set up the config file so that the run **will not** publish anything, but will do almost all action, so you can follow the run from the log file.
