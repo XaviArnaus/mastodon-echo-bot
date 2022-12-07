@@ -1,6 +1,6 @@
-from bundle.config import Config
-from bundle.storage import Storage
-from bundle.downloader import download_media_from_url
+from pyxavi.config import Config
+from pyxavi.storage import Storage
+from pyxavi.media import Media
 from .queue import Queue
 from mastodon import Mastodon
 import logging
@@ -50,7 +50,7 @@ class Publisher:
     
     def _post_media(self, media_file: str, description: str) -> dict:
         try:
-            downloaded = download_media_from_url(media_file, self._config.get("publisher.media_storage"))
+            downloaded = Media().download_from_url(media_file, self._config.get("publisher.media_storage"))
             return self._mastodon.media_post(
                 downloaded["file"],
                 mime_type=downloaded["mime_type"],

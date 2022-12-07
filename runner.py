@@ -1,5 +1,5 @@
-from bundle.config import Config
-from bundle.logger import Logger
+from pyxavi.config import Config
+from pyxavi.logger import Logger
 from src.echo import Echo
 
 class Runner:

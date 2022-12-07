@@ -1,5 +1,5 @@
-from bundle.config import Config
-from bundle.storage import Storage
+from pyxavi.config import Config
+from pyxavi.storage import Storage
 from .keywords_filter import KeywordsFilter
 from mastodon import Mastodon
 from ..queue import Queue

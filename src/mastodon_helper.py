@@ -1,4 +1,4 @@
-from bundle.config import Config
+from pyxavi.config import Config
 from mastodon import Mastodon
 import logging
 import os

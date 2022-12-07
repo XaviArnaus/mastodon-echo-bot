@@ -1,5 +1,5 @@
-from bundle.logger import Logger
-from bundle.config import Config
+from pyxavi.logger import Logger
+from pyxavi.config import Config
 from src.mastodon_helper import MastodonHelper
 from src.publisher import Publisher
 

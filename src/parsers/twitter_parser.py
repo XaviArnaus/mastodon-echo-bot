@@ -1,5 +1,5 @@
-from bundle.config import Config
-from bundle.storage import Storage
+from pyxavi.config import Config
+from pyxavi.storage import Storage
 from ..queue import Queue
 from datetime import timedelta
 from tweepy import Client

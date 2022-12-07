@@ -1,4 +1,4 @@
-from bundle.config import Config
+from pyxavi.config import Config
 from .mastodon_helper import MastodonHelper
 from .parsers.mastodon_parser import MastodonParser
 from .parsers.feed_parser import FeedParser

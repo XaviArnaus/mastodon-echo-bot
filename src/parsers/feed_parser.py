@@ -1,6 +1,6 @@
-from bundle.config import Config
-from bundle.storage import Storage
-from bundle.media import Media
+from pyxavi.config import Config
+from pyxavi.storage import Storage
+from pyxavi.media import Media
 from ..queue import Queue
 from .keywords_filter import KeywordsFilter
 from datetime import datetime
@@ -54,7 +54,7 @@ class FeedParser:
         result = []
 
         # Discover if we have a link to an image
-        images = self._media.get_media_url_from_text(post["summary"])
+        images = self._media.get_image_url_from_text(post["summary"])
 
         if images:
             for image_object in images:
