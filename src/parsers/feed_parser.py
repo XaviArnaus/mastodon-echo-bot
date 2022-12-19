@@ -90,9 +90,12 @@ class FeedParser:
             self._logger.info("Parsing site %s", site["name"])
             parsed_site = feedparser.parse(site["url"])
 
-            metadata = {
-                "language": parsed_site["feed"]["language"] if "language" in parsed_site["feed"] else site["language_default"]
-            }
+            if "language_overwrite" in site and "language_default" in site and site["language_default"] and site["language_overwrite"]:
+                metadata = {"language": site["language_default"]}
+            else:
+                metadata = {
+                    "language": parsed_site["feed"]["language"] if "language" in parsed_site["feed"] else site["language_default"]
+                }
 
             if not "entries" in parsed_site or not parsed_site["entries"]:
                 self._logger.warn("No entries in this feed, skipping.")
