@@ -42,7 +42,10 @@ class FeedParser:
         summary = ''.join(BeautifulSoup(summary, "html.parser").findAll(text=True))
         summary = summary.replace("\n\n\n", "\n\n")
         summary = re.sub("\s+", ' ', summary)
-        summary = (summary[:self.MAX_SUMMARY_LENGTH] + '...') if len(summary) > self.MAX_SUMMARY_LENGTH+3 else summary
+        max_length = site_options["max_summary_length"] \
+            if "max_summary_length" in site_options and site_options["max_summary_length"] \
+                else self.MAX_SUMMARY_LENGTH
+        summary = (summary[:max_length] + '...') if len(summary) > max_length+3 else summary
 
         text = f"{origin}:\n" if "show_name" in site_options and site_options["show_name"] else ""
         

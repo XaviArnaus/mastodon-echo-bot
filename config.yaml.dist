@@ -56,6 +56,8 @@ mastodon_parser:
       #   when the account is not being followed yet in this server.
       # The follow will be WITH reblogs
       auto_follow: True
+      # [Int] Max summary length. Default 300
+      max_summary_length: 400
 
 # The Feed Parser, in charge to query the defined feeds and get their posts
 feed_parser:
