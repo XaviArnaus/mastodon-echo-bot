@@ -108,6 +108,10 @@ class FeedParser:
 
             for post in posts:
 
+                # In some cases we don't have a 'summary', but a 'description' field
+                if "summary" not in post and "description" in post:
+                    post["summary"] = post["description"]
+
                 # Check if this post was already seen
                 if post["link"] in urls_seen:
                     self._logger.info("Discarding post: already seen %s", post["title"])
