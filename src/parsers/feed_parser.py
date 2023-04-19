@@ -106,11 +106,15 @@ class FeedParser:
             # Keep track of the post seen.
             urls_seen = site_data["urls_seen"] if site_data and "urls_seen" in site_data else []
 
-            for post in posts:
-
-                # In some cases we don't have a 'summary', but a 'description' field
+            # In some cases we don't have a 'summary', but a 'description' field
+            def fix_summary(post: dict):
                 if "summary" not in post and "description" in post:
                     post["summary"] = post["description"]
+                
+                return post
+            posts = map(fix_summary, posts)
+
+            for post in posts:
 
                 # Check if this post was already seen
                 if post["link"] in urls_seen:
