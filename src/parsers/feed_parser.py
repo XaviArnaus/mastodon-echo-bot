@@ -106,22 +106,22 @@ class FeedParser:
             # Keep track of the post seen.
             urls_seen = site_data["urls_seen"] if site_data and "urls_seen" in site_data else []
 
-            # In some cases we don't have a 'summary', but a 'description' field
-            def fix_summary(post: dict):
-                if "summary" not in post and "description" in post:
-                    post["summary"] = post["description"]
-                
-                return post
-            posts = map(fix_summary, posts)
-
             for post in posts:
-
+                
                 # Check if this post was already seen
                 if post["link"] in urls_seen:
                     self._logger.info("Discarding post: already seen %s", post["title"])
                     continue
                 else:
                     urls_seen.append(post["link"])
+                
+                # In some cases we don't have a 'summary', but a 'description' field
+                if "summary" not in post and "description" in post:
+                    self._logger.debug("Making out a [summary] from a [description]")
+                    post["summary"] = post["description"]
+                elif "summary" not in post and "description" not in post:
+                    self._logger.debug("Could not fix not present [summary]. Discarding.")
+                    continue
                 
                 # Only in case that we need to filter per keywords and the filtering bans the content.
                 if keywords_filter_profile and \

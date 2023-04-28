@@ -55,7 +55,7 @@ class Echo:
                 publisher.publish_all_from_queue()
         except Exception as e:
             remote_url = self._config.get("janitor.remote_url")
-            if remote_url is not None:
+            if remote_url is not None and not self._config.get("publisher.dry_run"):
                 app_name = self._config.get("app.name")
                 Janitor(remote_url).error(
                     message="```" + full_stack() + "```",
