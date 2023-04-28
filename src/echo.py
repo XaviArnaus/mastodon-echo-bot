@@ -1,4 +1,6 @@
 from pyxavi.config import Config
+from pyxavi.janitor import Janitor
+from pyxavi.debugger import full_stack
 from .mastodon_helper import MastodonHelper
 from .parsers.mastodon_parser import MastodonParser
 from .parsers.feed_parser import FeedParser
@@ -52,5 +54,13 @@ class Echo:
                 self._logger.info("Publishing the whole queue")
                 publisher.publish_all_from_queue()
         except Exception as e:
+            remote_url = self._config.get("janitor.remote_url")
+            if remote_url is not None:
+                app_name = self._config.get("app.name")
+                Janitor(remote_url).error(
+                    message="```" + full_stack() + "```",
+                    summary=f"Echo bot [{app_name}] failed: {e}"
+                )
+
             self._logger.exception(e)
 

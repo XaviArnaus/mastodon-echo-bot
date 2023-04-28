@@ -1,5 +1,5 @@
-Mastodon.py==1.5.2
+Mastodon.py==1.8.0
 feedparser
 tweepy
 beautifulsoup4
-git+https://github.com/XaviArnaus/pyxavi@v0.1.2
+git+https://github.com/XaviArnaus/pyxavi@v0.2.1
