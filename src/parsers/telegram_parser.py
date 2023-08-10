@@ -1,11 +1,11 @@
 from pyxavi.config import Config
 from pyxavi.storage import Storage
 from telethon import TelegramClient
-from telethon.utils import get_input_channel, get_input_peer, resolve_id
-# from telethon.tl.functions.channels import TypeInputChannel
-from telethon.tl.types import InputPeerChannel
-from telethon.tl.types import ChannelMessagesFilter
+from telethon.types import Message as TelegramMessage
 import logging
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
+import pytz
 from pyxavi.debugger import dd
 
 
@@ -59,7 +59,6 @@ class TelegramParser:
             dialog.entity if dialog.entity.id in chats else False\
                 for dialog in self._telegram.iter_dialogs()
         ]))
-        dd(entities, max_depth=2)
 
         # If no entities found, return.
         logger_string = f"Got {len(entities)} entities."
@@ -72,26 +71,62 @@ class TelegramParser:
         # Now work with the messages for each entity
         for entity in entities:
 
+            # Shall we ignore the offsets?
+            ignore_offsets = self._config.get("telegram_parser.ignore_offsets", False)
+
             # We have to control what did we already see, to avoid duplicates
             seen_message_ids = list(self._chats_storage.get(f"entity_{entity.id}", []))
+
+            # Do we have defined a date to start from?
+            offset_date = self._config.get("telegram_parser.date_to_start_from", None)
 
             # Retrieving messages:
             #   reverse=True -> from oldest to newest, to keep the posting order
             #   offset_id -> avoid retrieving messages that we already know
+            #   offset_date -> avoid retrieving messages older than the given datetime
             self._logger.info(f"Getting messages for entity {entity.title}")
             for message in self._telegram.iter_messages(
                 entity=entity,
                 reverse=True,
-                offset_id=max(seen_message_ids) if seen_message_ids else 0
+                offset_id=max(seen_message_ids) if seen_message_ids and not ignore_offsets else 0,
+                offset_date=offset_date if not ignore_offsets else None
             ):
                 # Theoreticaly we don't need to check again the seen message IDs, but...
-                if message.id not in seen_message_ids:
-                    dd(message.id)
-                    dd(message.text)
-                    dd(message.date)
+                if message.id in seen_message_ids and not ignore_offsets:
+                    self._logger.info(f"Discarding message: already seen {message.id}")
+                    continue
 
-                    # Remember this message
-                    seen_message_ids.append(message.id)
+                # We don't want anything older than 6 months
+                if datetime.now().replace(tzinfo=pytz.UTC) - relativedelta(months=6) > message.date:
+                    self._logger.info(f"Discarding message: too old {message.date}")
+                    continue
+
+                # Prepare the new toot
+                filename = f"storage/media/{datetime.now().timestamp()}"
+                self._telegram.loop.run_until_complete(
+                    self._parse_media(
+                        message=message,
+                        filename=filename
+                    )
+                )
+                # self._queue.append(
+                #     {
+                #         "status": self._format_toot(post, site["name"],site),
+                #         "media": media if media else None,
+                #         "language": metadata["language"],
+                #         "published_at": post_date,
+                #         "action": "new"
+                #     }
+                # )
+
+
+                dd(message.id)
+                dd(message.text)
+                dd(message.date)
+                dd(filename)    
+
+                # Remember this message
+                seen_message_ids.append(message.id)
 
             # Store the new seen value. In the worst case it is the same as before.
             self._chats_storage.set(f"entity_{entity.id}", seen_message_ids)
@@ -99,3 +134,26 @@ class TelegramParser:
 
         
         self._logger.debug("Done")
+
+    async def _parse_media(self, message: TelegramMessage, filename: str):
+
+        # Initiate
+        result = []
+
+        # Download the media
+        path = await self._telegram.download_media(
+            message=message,
+            file=filename
+        )
+        #images = self._telegram.download_media(message=message)
+        dd(path)
+
+        # if path:
+        #     result.append(
+        #         {
+        #             "url": path,
+        #             "alt_text": None
+        #         }
+        #     )
+
+        # return result
