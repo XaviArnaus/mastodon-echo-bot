@@ -2,4 +2,6 @@ Mastodon.py==1.8.0
 feedparser
 tweepy
 beautifulsoup4
-git+https://github.com/XaviArnaus/pyxavi@v0.2.1
+pytz
+telethon
+pyxavi>=0.3.2
