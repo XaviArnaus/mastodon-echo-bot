@@ -6,10 +6,14 @@ import logging
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import pytz
+import math
 from pyxavi.debugger import dd
 
 
 class TelegramParser:
+
+    MAX_MEDIA_PER_STATUS = 4
+    MAX_STATUS_LENGTH = 400
 
     _telegram: TelegramClient
     
@@ -45,18 +49,22 @@ class TelegramParser:
         # Chats and channels are managed equally, but under different entities.
         chats = self._config.get("telegram_parser.chats", [])
         chats += self._config.get("telegram_parser.channels", [])
-
+        
         if not chats:
             self._logger.info("No Telegram conversations registered to parse, skipping,")
             return
-        else:
-            # We only need the chat IDs to then retrieve later the Entities.
-            chats = list(filter(bool,[abs(chat["id"]) if "id" in chat else False for chat in chats]))
         
+        # We only need the chat IDs to then retrieve later the Entities.
+        chat_ids = list(filter(bool,[abs(chat["id"]) if "id" in chat else False for chat in chats]))
+        # Also, build a dict for the configuration
+        chats_params = {}
+        for chat in chats:
+            chats_params[str(chat["id"])]: chat
+
         # Get the entities that match with the given IDs.
         self._logger.info(f"Get matching entities from the current user's dialogs")
         entities = list(filter(bool,[
-            dialog.entity if dialog.entity.id in chats else False\
+            dialog.entity if dialog.entity.id in chat_ids else False\
                 for dialog in self._telegram.iter_dialogs()
         ]))
 
@@ -80,6 +88,9 @@ class TelegramParser:
             # Do we have defined a date to start from?
             offset_date = self._config.get("telegram_parser.date_to_start_from", None)
 
+            # First we get all messages in queue. 
+            # We must use the iter_messages to avoid using asyncs
+            messages_to_post = []
             # Retrieving messages:
             #   reverse=True -> from oldest to newest, to keep the posting order
             #   offset_id -> avoid retrieving messages that we already know
@@ -101,29 +112,8 @@ class TelegramParser:
                     self._logger.info(f"Discarding message: too old {message.date}")
                     continue
 
-                # Prepare the new toot
-                filename = f"storage/media/{datetime.now().timestamp()}"
-                self._telegram.loop.run_until_complete(
-                    self._parse_media(
-                        message=message,
-                        filename=filename
-                    )
-                )
-                # self._queue.append(
-                #     {
-                #         "status": self._format_toot(post, site["name"],site),
-                #         "media": media if media else None,
-                #         "language": metadata["language"],
-                #         "published_at": post_date,
-                #         "action": "new"
-                #     }
-                # )
-
-
-                dd(message.id)
-                dd(message.text)
-                dd(message.date)
-                dd(filename)    
+                # If reached until here, we want this message
+                messages_to_post.append(message)
 
                 # Remember this message
                 seen_message_ids.append(message.id)
@@ -132,28 +122,146 @@ class TelegramParser:
             self._chats_storage.set(f"entity_{entity.id}", seen_message_ids)
             self._chats_storage.write_file()
 
+            self._logger.info(f"Done. {len(messages_to_post)} messages to be posted.")
+            
+            # Now we need to group messages, as images are sent one per message,
+            # if we have an original message with several pictures we'll receive
+            # several messages with one picture with a very short time in between.
+            self._logger.info("Grouping the messages.")
+            grouped_messages = self.group_messages(messages=messages_to_post)
+            self._logger.info(f"Done. {len(grouped_messages)} groups of messages.")
+
+            # Lastly we loop the grouped messages and send each group to be posted,
+            # which means an async task that downloads all possible meadia, builds and formats
+            # the posts and sends them to the Mastodon API
+            self._logger.info("Starting post preparation process")
+            for group_of_messages in grouped_messages:
+
+                # From here on we make it async, because we need the media downloaded
+                # and attached to the message, and the lib functions are async.
+                self._logger.info(f"Preparing group of {len(group_of_messages)} message(s).")
+                self._telegram.loop.run_until_complete(
+                    self.post_group_of_messages(
+                        messages=grouped_messages,
+                        entity=entity,
+                        chat_params=chats_params[str(entity.id)]
+                    )
+                )
+
+                # dd(message.id)
+                # dd(message.text)
+                # dd(message.date)
+                # dd(filename)
+
         
         self._logger.debug("Done")
+    
+    def group_messages(self, messages: list[TelegramMessage]) -> list[list]:
+        groups = []
+        current_group = []
+        last_message = None
+        for message in messages:
+            # If we don't have a last message, it's the first message
+            if last_message is None:
+                last_message = message
+                current_group.append(message)
+            else:
+                # The date difference between last message and this message
+                # is more than a minute. This is a new group.
+                if last_message.date + relativedelta(minute=1) < message.date:
+                    # We need to close the current group and start a new one
+                    groups.append(current_group)
+                    current_group = []
+                
+                # Now add this message to the current group.
+                # It will be a new group if the previous check reset it.
+                current_group.append(message)
+        
+        # Outside the loop, if we still have a current group, we merge it.
+        groups.append(current_group)
+            
+        return groups
 
-    async def _parse_media(self, message: TelegramMessage, filename: str):
+    async def post_group_of_messages(self, messages: list[TelegramMessage], entity, chat_params: dict):
+        """
+        Do all the work to post a group of messages:
+        - Download the media in all messages
+        - Build the body of the post
+        - Maybe even split the posting status into several posts due to length or amount of pics
+        """
 
-        # Initiate
-        result = []
+        # Go through all messages and get all text and all media
+        text = ""
+        media_stack = []
+        async for message in messages:
+            # First of all download the possible media
+            if message.file is not None:
+                media_stack.append(await self._parse_media_item(message=message))
+            
+            # Now add the text to the text stack
+            text += "\n\n" + message.text
+        
+        # Now, we split based on:
+        # - The text may be too long
+        # - The amount of media is more than 4 items
+        num_of_statuses = 1
+        if len(media_stack) > self.MAX_MEDIA_PER_STATUS:
+            num_of_statuses = math.ceil(len(media_stack) / self.MAX_MEDIA_PER_STATUS)
+        if len(text) > self.MAX_STATUS_LENGTH:
+            num_of_statuses = max(
+                num_of_statuses,
+                math.ceil(len(text) / self.MAX_STATUS_LENGTH)
+            )
+        for idx in range(num_of_statuses):
+            status_num = idx + 1
+
+            self._queue.append(
+            {
+                "status": self._format_status(
+                    text=text,
+                    current_index=status_num,
+                    total=num_of_statuses,
+                    entity=entity,
+                    show_name=chat_params["show_name"]
+
+                ),
+                "media": media if media else None,
+                "language": metadata["language"],
+                "published_at": post_date,
+                "action": "new"
+            }
+        )
+
+        # self._queue.append(
+        #     {
+        #         "status": self._format_toot(post, site["name"],site),
+        #         "media": media if media else None,
+        #         "language": metadata["language"],
+        #         "published_at": post_date,
+        #         "action": "new"
+        #     }
+        # )
+    
+    def _format_status(self, text: str, current_index: int, total: int, entity, show_name: bool) -> str:
+        
+        text = f"{origin}:\n" if "show_name" in site_options and site_options["show_name"] else ""
+        
+        return f"{text}\t{title}\n\n{summary}\n\n{link}"
+    
+    async def _parse_media_item(self, message: TelegramMessage) -> dict:
+        media = {
+            "path": None,
+            "mime_type": None
+        }
+
+        #filename = str(datetime.now().timestamp()).replace(".", "")
+        filename = f"{message.file.name}.{message.file.ext}"
+        media["mime_type"] = message.file.mime_type
 
         # Download the media
-        path = await self._telegram.download_media(
+        media["path"] = await self._telegram.download_media(
             message=message,
-            file=filename
+            file=f"storage/media/{filename}"
         )
-        #images = self._telegram.download_media(message=message)
-        dd(path)
 
-        # if path:
-        #     result.append(
-        #         {
-        #             "url": path,
-        #             "alt_text": None
-        #         }
-        #     )
-
-        # return result
+        return media
