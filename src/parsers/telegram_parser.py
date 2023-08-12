@@ -1,5 +1,6 @@
 from pyxavi.config import Config
 from pyxavi.storage import Storage
+from ..queue import Queue
 from telethon import TelegramClient
 from telethon.types import Message as TelegramMessage
 import logging
@@ -20,8 +21,8 @@ class TelegramParser:
     def __init__(self, config: Config) -> None:
         self._config = config
         self._logger = logging.getLogger(config.get("logger.name"))
-        self._toots_queue = Storage(self._config.get("toots_queue_storage.file"))
         self._chats_storage = Storage(self._config.get("telegram_parser.storage_file"))
+        self._queue = Queue(config)
         self._telegram = self.initialize_client()
     
     def telegram_ok(self) -> None:
@@ -193,6 +194,7 @@ class TelegramParser:
         # Go through all messages and get all text and all media
         text = ""
         media_stack = []
+        status_date = messages[0].date
         async for message in messages:
             # First of all download the possible media
             if message.file is not None:
@@ -215,38 +217,37 @@ class TelegramParser:
         for idx in range(num_of_statuses):
             status_num = idx + 1
 
+            # Take as max media as possible from the stack
+            media_to_post = []
+            while media_stack:
+                media_to_post.append(media_stack.pop())
+                if len(media_to_post) >= self.MAX_MEDIA_PER_STATUS:
+                    break
+
             self._queue.append(
-            {
-                "status": self._format_status(
-                    text=text,
-                    current_index=status_num,
-                    total=num_of_statuses,
-                    entity=entity,
-                    show_name=chat_params["show_name"]
-
-                ),
-                "media": media if media else None,
-                "language": metadata["language"],
-                "published_at": post_date,
-                "action": "new"
-            }
-        )
-
-        # self._queue.append(
-        #     {
-        #         "status": self._format_toot(post, site["name"],site),
-        #         "media": media if media else None,
-        #         "language": metadata["language"],
-        #         "published_at": post_date,
-        #         "action": "new"
-        #     }
-        # )
+                {
+                    "status": self._format_status(
+                        text=text,
+                        current_index=status_num,
+                        total=num_of_statuses,
+                        entity=entity,
+                        show_name=chat_params["show_name"] if "show_name" in chat_params and chat_params else False
+                    ),
+                    "media": media_to_post if media_to_post else None,
+                    "language": chat_params["language"] or "en_US",
+                    "published_at": status_date,
+                    "action": "new"
+                }
+            )
+            
+        # Update the toots queue, by adding the new ones at the end of the list
+        self._queue.update()
     
     def _format_status(self, text: str, current_index: int, total: int, entity, show_name: bool) -> str:
         
-        text = f"{origin}:\n" if "show_name" in site_options and site_options["show_name"] else ""
+        text = f"{entity.title}:\n\n" if show_name else ""
         
-        return f"{text}\t{title}\n\n{summary}\n\n{link}"
+        return f"{text}"
     
     async def _parse_media_item(self, message: TelegramMessage) -> dict:
         media = {

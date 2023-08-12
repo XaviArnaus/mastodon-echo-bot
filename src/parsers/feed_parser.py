@@ -25,7 +25,6 @@ class FeedParser:
     def __init__(self, config: Config) -> None:
         self._config = config
         self._logger = logging.getLogger(config.get("logger.name"))
-        self._toots_queue = Storage(self._config.get("toots_queue_storage.file"))
         self._feeds_storage = Storage(self._config.get("feed_parser.storage_file"))
         self._queue = Queue(config)
         self._media = Media()
