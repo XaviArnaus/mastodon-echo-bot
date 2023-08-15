@@ -114,6 +114,12 @@ class TelegramParser:
                     self._logger.info(f"Discarding message: too old {message.date}")
                     continue
 
+                # We don´t want any message that is empty and also does not contain any media
+                if (message.text is None or message.text == "") \
+                    and (message.file is None):
+                    self._logger.info(f"Discarding message: no text or media {message.date}")
+                    continue
+
                 # If reached until here, we want this message
                 messages_to_post.append(message)
 
@@ -213,20 +219,23 @@ class TelegramParser:
                 })
             
             # Now add the text to the text stack
-            if message.text is not None:
-                text += "\n\n" + message.text
+            if message.text is not None and len(message.text) > 0:
+                if len(text) > 0:
+                    text += "\n\n"
+                text += message.text
         
         # Now, we split based on:
         # - The text may be too long
         # - The amount of media is more than 4 items
-        num_of_statuses = 1
+        num_of_statuses_by_text = num_of_statuses_by_media = 1
         if len(media_stack) > self.MAX_MEDIA_PER_STATUS:
-            num_of_statuses = math.ceil(len(media_stack) / self.MAX_MEDIA_PER_STATUS)
+            num_of_statuses_by_media = math.ceil(len(media_stack) / self.MAX_MEDIA_PER_STATUS)
         if len(text) > self.MAX_STATUS_LENGTH:
-            num_of_statuses = max(
-                num_of_statuses,
-                math.ceil(len(text) / self.MAX_STATUS_LENGTH)
-            )
+            num_of_statuses_by_text = math.ceil(len(text) / self.MAX_STATUS_LENGTH)
+        num_of_statuses = max(num_of_statuses_by_text, num_of_statuses_by_media)
+        self._logger.debug(f"Ideal num of status: {num_of_statuses_by_text} for text" +\
+                           f" and {num_of_statuses_by_media} for media." +\
+                           f" Generating {num_of_statuses} statuses")
         for idx in range(num_of_statuses):
             status_num = idx + 1
 
@@ -264,12 +273,16 @@ class TelegramParser:
     def _format_status(self, text: str, current_index: int, total: int, entity, show_name: bool) -> str:
         dd(show_name)
         dd(entity.title)
+        dd(text)
         result = f"{entity.title}:\n\n" if show_name else ""
+        dd(result)
         result += f"{text}"
 
         # Add the message counter
         if total > 1:
-            result += f"\n\n({current_index}/{total})"
+            if len(result) > 0:
+                result += "\n\n"
+            result += f"({current_index}/{total})"
         
         dd(result)
         
