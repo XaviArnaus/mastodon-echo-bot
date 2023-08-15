@@ -29,6 +29,8 @@ logger:
 
 # Janitor config
 janitor:
+  # [Bool] Use it. Defaults to false
+  active: False
   # [String] URL with port where the messages will be delivered
   remote_url: http://remote_url:5000
 

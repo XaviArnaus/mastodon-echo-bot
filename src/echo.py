@@ -60,13 +60,14 @@ class Echo:
                 self._logger.info("Publishing the whole queue")
                 publisher.publish_all_from_queue()
         except Exception as e:
-            remote_url = self._config.get("janitor.remote_url")
-            if remote_url is not None and not self._config.get("publisher.dry_run"):
-                app_name = self._config.get("app.name")
-                Janitor(remote_url).error(
-                    message="```" + full_stack() + "```",
-                    summary=f"Echo bot [{app_name}] failed: {e}"
-                )
+            if self._config.get("janitor.active", False):
+                remote_url = self._config.get("janitor.remote_url")
+                if remote_url is not None and not self._config.get("publisher.dry_run"):
+                    app_name = self._config.get("app.name")
+                    Janitor(remote_url).error(
+                        message="```" + full_stack() + "```",
+                        summary=f"Echo bot [{app_name}] failed: {e}"
+                    )
 
             self._logger.exception(e)
 
