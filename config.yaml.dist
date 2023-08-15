@@ -86,8 +86,8 @@ feed_parser:
 
 telegram_parser:
   # [String] The authentication from the Telegram user
-  api_id: "29793188"
-  api_hash: "484324363f67729be3428e6fe6a7a32b"
+  api_id: "123456789"
+  api_hash: "abcdef123456789"
   # [String] Where to store the feeds registry
   storage_file: "storage/telegram.yaml"
   date_to_start_from: "2023-07-31"
