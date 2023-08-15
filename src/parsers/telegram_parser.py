@@ -9,6 +9,7 @@ from dateutil.relativedelta import relativedelta
 import pytz
 import math
 import os
+import copy
 from pyxavi.debugger import dd
 
 
@@ -16,6 +17,7 @@ class TelegramParser:
 
     MAX_MEDIA_PER_STATUS = 4
     MAX_STATUS_LENGTH = 400
+    DATETIME_FORMAT = "%Y-%m-%d %H:%i:%s"
 
     _telegram: TelegramClient
     
@@ -198,7 +200,7 @@ class TelegramParser:
         # Go through all messages and get all text and all media
         text = ""
         media_stack = []
-        status_date = messages[0].date
+        status_date = None
         for message in messages:
             self._logger.debug(f"Message {message.id} in group")
             # First of all download the possible media
@@ -214,7 +216,7 @@ class TelegramParser:
                     )
                 )
                 media_stack.append({
-                    "path": path,
+                    "url": path,
                     "mime_type": message.file.mime_type
                 })
             
@@ -223,6 +225,9 @@ class TelegramParser:
                 if len(text) > 0:
                     text += "\n\n"
                 text += message.text
+            
+            if status_date is None:
+                status_date = copy.copy(message.date)
         
         # Now, we split based on:
         # - The text may be too long

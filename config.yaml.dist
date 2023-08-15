@@ -84,6 +84,27 @@ feed_parser:
       # [Bool] Shows an initial line wit the name of the site like "{name}:\n"
       show_name: True
 
+telegram_parser:
+  # [String] The authentication from the Telegram user
+  api_id: "29793188"
+  api_hash: "484324363f67729be3428e6fe6a7a32b"
+  # [String] Where to store the feeds registry
+  storage_file: "storage/telegram.yaml"
+  date_to_start_from: "2023-07-31"
+  ignore_offsets: True
+  channels:
+    # -
+    #   id: -1668477107
+    #   name: XaviTest
+    #   language: "ca_ES"
+    #   show_name: False
+  chats:
+    # - 
+    #   id: 9999
+    #   name: John Snow
+    #   language: "ca_ES"
+    #   show_name: False
+
 twitter_parser:
   # [String] Bearer token from Twitter.
   bearer_token: "my-super-long-bearer-token-that-comes-from-registering-in-twitter-development"
