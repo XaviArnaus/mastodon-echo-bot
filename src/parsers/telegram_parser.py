@@ -17,7 +17,7 @@ class TelegramParser:
 
     MAX_MEDIA_PER_STATUS = 4
     MAX_STATUS_LENGTH = 400
-    DATETIME_FORMAT = "%Y-%m-%d %H:%i:%s"
+    DATE_FORMAT = "%Y-%m-%d"
 
     _telegram: TelegramClient
     
@@ -91,6 +91,7 @@ class TelegramParser:
 
             # Do we have defined a date to start from?
             offset_date = self._config.get("telegram_parser.date_to_start_from", None)
+            offset_date = datetime.strptime(offset_date, self.DATE_FORMAT)
 
             # First we get all messages in queue. 
             # We must use the iter_messages to avoid using asyncs
@@ -135,27 +136,30 @@ class TelegramParser:
 
             self._logger.info(f"Done. {len(messages_to_post)} messages to be posted.")
             
-            # Now we need to group messages, as images are sent one per message,
-            # if we have an original message with several pictures we'll receive
-            # several messages with one picture with a very short time in between.
-            self._logger.info("Grouping the messages.")
-            grouped_messages = self.group_messages(messages=messages_to_post)
-            self._logger.info(f"Done. {len(grouped_messages)} groups of messages.")
+            if len(messages_to_post) > 0:
+                # Now we need to group messages, as images are sent one per message,
+                # if we have an original message with several pictures we'll receive
+                # several messages with one picture with a very short time in between.
+                self._logger.info("Grouping the messages.")
+                grouped_messages = self.group_messages(messages=messages_to_post)
+                self._logger.info(f"Done. {len(grouped_messages)} groups of messages.")
 
-            # Lastly we loop the grouped messages and send each group to be posted,
-            # which means an async task that downloads all possible meadia, builds and formats
-            # the posts and sends them to the Mastodon API
-            self._logger.info("Starting post preparation process")
-            for group_of_messages in grouped_messages:
+                # Lastly we loop the grouped messages and send each group to be posted,
+                # which means an async task that downloads all possible meadia, builds and
+                # formats the posts and sends them to the Mastodon API
+                self._logger.info("Starting post preparation process")
+                for group_of_messages in grouped_messages:
 
-                # From here on we make it async, because we need the media downloaded
-                # and attached to the message, and the lib functions are async.
-                self._logger.info(f"Preparing group of {len(group_of_messages)} message(s).")
-                self.post_group_of_messages(
-                    messages=group_of_messages,
-                    entity=entity,
-                    chat_params=chats_params[str(entity.id)]
-                )
+                    # From here on we make it async, because we need the media downloaded
+                    # and attached to the message, and the lib functions are async.
+                    self._logger.info(
+                        f"Preparing group of {len(group_of_messages)} message(s)."
+                    )
+                    self.post_group_of_messages(
+                        messages=group_of_messages,
+                        entity=entity,
+                        chat_params=chats_params[str(entity.id)]
+                    )
 
         self._logger.debug("Done")
     
@@ -216,7 +220,7 @@ class TelegramParser:
                     )
                 )
                 media_stack.append({
-                    "url": path,
+                    "path": path,
                     "mime_type": message.file.mime_type
                 })
             
@@ -276,11 +280,7 @@ class TelegramParser:
         self._queue.update()
     
     def _format_status(self, text: str, current_index: int, total: int, entity, show_name: bool) -> str:
-        dd(show_name)
-        dd(entity.title)
-        dd(text)
         result = f"{entity.title}:\n\n" if show_name else ""
-        dd(result)
         result += f"{text}"
 
         # Add the message counter
@@ -288,8 +288,6 @@ class TelegramParser:
             if len(result) > 0:
                 result += "\n\n"
             result += f"({current_index}/{total})"
-        
-        dd(result)
         
         return result
     

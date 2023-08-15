@@ -31,14 +31,26 @@ class Publisher:
                     if "media" in toot and toot["media"]:
                         self._logger.info("Posting first %s media items", len(toot["media"]))
                         for item in toot["media"]:
+                            shall_download = True
+                            if "url" in item and item["url"] is not None:
+                                media_file = item["url"]
+                            elif "path" in item and item["path"] is not None:
+                                media_file = item["path"]
+                                shall_download = False
+
+                            else:
+                                self._logger.warning("the Media to post does not have an URL or a PATH")
+                                continue
                             posted_result = self._post_media(
-                                item["url"],
-                                description=item["alt_text"] if "alt_text" in item else None
+                                media_file=media_file,
+                                download_file=shall_download,
+                                description=item["alt_text"] if "alt_text" in item else None,
+                                mime_type=item["mime_type"] if "mime_type" in item else None
                             )
                             if posted_result:
                                 posted_media.append(posted_result["id"])
                             else:
-                                self._logger.info("Could not post %s", item["url"])
+                                self._logger.info("Could not post %s", media_file)
                     self._logger.info("Tooting new post %s", toot["status"])
                     return self._mastodon.status_post(
                         toot["status"],
@@ -48,9 +60,15 @@ class Publisher:
             else:
                 self._logger.warn("Toot with published_at %s does not have an action, skipping.", toot["published_at"])
     
-    def _post_media(self, media_file: str, description: str) -> dict:
+    def _post_media(self, media_file: str, download_file: bool, description: str, mime_type: str = None) -> dict:
         try:
-            downloaded = Media().download_from_url(media_file, self._config.get("publisher.media_storage"))
+            if download_file is True:
+                downloaded = Media().download_from_url(media_file, self._config.get("publisher.media_storage"))
+            else:
+                downloaded = {
+                    "file": media_file,
+                    "mime_type": mime_type
+                }
             return self._mastodon.media_post(
                 downloaded["file"],
                 mime_type=downloaded["mime_type"],
