@@ -255,7 +255,7 @@ class TelegramParser:
             # Take as max media as possible from the stack
             media_to_post = []
             while media_stack:
-                media_to_post.append(media_stack.pop())
+                media_to_post.append(media_stack.pop(0))
                 if len(media_to_post) >= self.MAX_MEDIA_PER_STATUS:
                     break
             

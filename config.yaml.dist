@@ -87,22 +87,34 @@ feed_parser:
 telegram_parser:
   # [String] The authentication from the Telegram user
   api_id: "123456789"
+  # [String] The api hash from the Telegram user. Visit https://my.telegram.org/auth?to=apps
   api_hash: "abcdef123456789"
   # [String] Where to store the feeds registry
   storage_file: "storage/telegram.yaml"
+  # [String] The date from where to start the bridge, ignoring earliers
   date_to_start_from: "2023-07-31"
+  # [Bool] An overall switch to ignore date and seen offsets. Will try to publish everything.
   ignore_offsets: True
+  # [List of Objects]
   channels:
     # -
+    #   # [Integer] Mandatory. ID of the channel / chat, as it appears in the browser bar.
     #   id: -1668477107
+    #   # [String] A name for this channel, not necessarily the real one.
     #   name: XaviTest
+    #   # [String] The language code to set when publishing in Mastodon
     #   language: "ca_ES"
+    #   # [Bool] If adding the name of the channel on top of the message is wanted
     #   show_name: False
   chats:
     # - 
+    #   # [Integer] Mandatory. ID of the channel / chat, as it appears in the browser bar.
     #   id: 9999
+    #   # [String] A name for this chat, not necessarily the real one.
     #   name: John Snow
+    #   # [String] The language code to set when publishing in Mastodon
     #   language: "ca_ES"
+    #   # [Bool] If adding the name of the channel on top of the message is wanted
     #   show_name: False
 
 twitter_parser:
