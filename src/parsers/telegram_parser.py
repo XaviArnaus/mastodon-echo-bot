@@ -10,7 +10,6 @@ import pytz
 import math
 import os
 import copy
-from pyxavi.debugger import dd
 
 
 class TelegramParser:
@@ -177,8 +176,6 @@ class TelegramParser:
                 # This is a new group if (with OR):
                 # - The date diff between last message and this message is more than a minute.
                 # - This message has text
-                dd(message.date)
-                dd(message.text)
                 if last_message.date + timedelta(0,0,0,0,1) < message.date \
                     or (message.text is not None and len(message.text) > 0):
                     # We need to close the current group and start a new one
