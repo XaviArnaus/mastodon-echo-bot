@@ -72,7 +72,8 @@ class Publisher:
             return self._mastodon.media_post(
                 downloaded["file"],
                 mime_type=downloaded["mime_type"],
-                description=description
+                description=description,
+                focus=(0,1)
             )
         except Exception as e:
             self._logger.exception(e)
