@@ -174,9 +174,13 @@ class TelegramParser:
                 last_message = message
                 current_group.append(message)
             else:
-                # The date difference between last message and this message
-                # is more than a minute. This is a new group.
-                if last_message.date + timedelta(0,0,0,0,1) < message.date:
+                # This is a new group if (with OR):
+                # - The date diff between last message and this message is more than a minute.
+                # - This message has text
+                dd(message.date)
+                dd(message.text)
+                if last_message.date + timedelta(0,0,0,0,1) < message.date \
+                    or (message.text is not None and len(message.text) > 0):
                     # We need to close the current group and start a new one
                     self._logger.debug(f"Message {message.date} requires a new group. Creating.")
                     groups.append(current_group)
