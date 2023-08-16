@@ -5,6 +5,7 @@ from .mastodon_helper import MastodonHelper
 from .parsers.mastodon_parser import MastodonParser
 from .parsers.feed_parser import FeedParser
 from .parsers.twitter_parser import TwitterParser
+from .parsers.telegram_parser import TelegramParser
 from .publisher import Publisher
 import logging
 
@@ -44,6 +45,11 @@ class Echo:
             twitter_parser = TwitterParser(self._config)
             twitter_parser.parse()
 
+            # Parses the defined Telegram channels
+            # and merges the toots to the already existing queue
+            telegram_parser = TelegramParser(self._config)
+            telegram_parser.parse()
+
             # Read from the queue the toots to publish
             # and do so according to the config parameters
             publisher = Publisher(self._config, mastodon)
@@ -54,13 +60,14 @@ class Echo:
                 self._logger.info("Publishing the whole queue")
                 publisher.publish_all_from_queue()
         except Exception as e:
-            remote_url = self._config.get("janitor.remote_url")
-            if remote_url is not None and not self._config.get("publisher.dry_run"):
-                app_name = self._config.get("app.name")
-                Janitor(remote_url).error(
-                    message="```" + full_stack() + "```",
-                    summary=f"Echo bot [{app_name}] failed: {e}"
-                )
+            if self._config.get("janitor.active", False):
+                remote_url = self._config.get("janitor.remote_url")
+                if remote_url is not None and not self._config.get("publisher.dry_run"):
+                    app_name = self._config.get("app.name")
+                    Janitor(remote_url).error(
+                        message="```" + full_stack() + "```",
+                        summary=f"Echo bot [{app_name}] failed: {e}"
+                    )
 
             self._logger.exception(e)
 

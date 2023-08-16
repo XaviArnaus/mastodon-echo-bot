@@ -13,6 +13,10 @@ run:
 create_app:
 	$(PYTHON) create_app.py
 
+.PHONY: telegram_login
+telegram_login:
+	$(PYTHON) telegram_login.py
+
 .PHONY: publish_queue
 publish_queue:
 	$(PYTHON) publish_queue.py

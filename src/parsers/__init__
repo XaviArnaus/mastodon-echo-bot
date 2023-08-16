@@ -1,11 +1,13 @@
 from .mastodon_parser import MastodonParser
 from .feed_parser import FeedParser
 from .twitter_parser import TwitterParser
-from keywords_filter import KeywordsFilter
+from .keywords_filter import KeywordsFilter
+from .telegram_parser import TelegramParser
 
 __all__ = [
     "MastodonParser",
     "FeedParser",
     "TwitterParser",
-    "KeywordsFilter"
+    "KeywordsFilter",
+    "TelegramParser"
 ]
