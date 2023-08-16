@@ -134,7 +134,7 @@ class TelegramParser:
             self._chats_storage.set(f"entity_{entity.id}", seen_message_ids)
             self._chats_storage.write_file()
 
-            self._logger.info(f"Done. {len(messages_to_post)} messages to be posted.")
+            self._logger.info(f"Done. Received {len(messages_to_post)} messages to be posted.")
             
             if len(messages_to_post) > 0:
                 # Now we need to group messages, as images are sent one per message,
