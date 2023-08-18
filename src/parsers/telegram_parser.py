@@ -8,7 +8,6 @@ from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 import pytz
 import math
-import os
 import copy
 
 
@@ -25,7 +24,6 @@ class TelegramParser:
         self._logger = logging.getLogger(config.get("logger.name"))
         self._chats_storage = Storage(self._config.get("telegram_parser.storage_file"))
         self._queue = Queue(config)
-        self._telegram = self.initialize_client()
     
     def telegram_ok(self) -> None:
         self._telegram.get_me()
@@ -56,6 +54,9 @@ class TelegramParser:
         if not chats:
             self._logger.info("No Telegram conversations registered to parse, skipping,")
             return
+        
+        # Initialize Client
+        self._telegram = self.initialize_client()
         
         # We only need the chat IDs to then retrieve later the Entities.
         chat_ids = list(filter(bool,[abs(chat["id"]) if "id" in chat else False for chat in chats]))
