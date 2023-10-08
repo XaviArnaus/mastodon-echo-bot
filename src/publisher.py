@@ -4,6 +4,7 @@ from pyxavi.media import Media
 from .queue import Queue
 from mastodon import Mastodon
 import logging
+import time
 
 class Publisher:
     '''
@@ -14,6 +15,7 @@ class Publisher:
     '''
 
     MAX_RETRIES = 3
+    SLEEP_TIME = 10
 
     def __init__(self, config: Config, mastodon: Mastodon) -> None:
         self._config = config
@@ -67,6 +69,8 @@ class Publisher:
                             return toot
                         except Exception as e:
                             self._logger.exception(e)
+                            self._logger.debug(f"sleeping {self.SLEEP_TIME} seconds")
+                            time.sleep(self.SLEEP_TIME)
                             retry += 1
                             if retry >= self.MAX_RETRIES:
                                 self._logger.error(f"MAX RETRIES of {self.MAX_RETRIES} is reached. Discarding toot.")
