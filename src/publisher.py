@@ -57,16 +57,16 @@ class Publisher:
                             else:
                                 self._logger.info("Could not post %s", media_file)
                     retry = 0
-                    toot = None
+                    published = None
                     while toot is None:
                         try:
                             self._logger.info(f"Tooting new post (retry: {retry}) %s", toot["status"])
-                            toot = self._mastodon.status_post(
+                            published = self._mastodon.status_post(
                                 toot["status"],
                                 language=toot["language"],
                                 media_ids=posted_media if posted_media else None
                             )
-                            return toot
+                            return published
                         except Exception as e:
                             self._logger.exception(e)
                             self._logger.debug(f"sleeping {self.SLEEP_TIME} seconds")
