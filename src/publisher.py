@@ -12,6 +12,9 @@ class Publisher:
     It is responsible to re-toot the queued toots.
     There are 2 methods, depending if we want to publish all in one shot or just the older one
     '''
+
+    MAX_RETRIES = 3
+
     def __init__(self, config: Config, mastodon: Mastodon) -> None:
         self._config = config
         self._logger = logging.getLogger(config.get("logger.name"))
@@ -51,12 +54,24 @@ class Publisher:
                                 posted_media.append(posted_result["id"])
                             else:
                                 self._logger.info("Could not post %s", media_file)
-                    self._logger.info("Tooting new post %s", toot["status"])
-                    return self._mastodon.status_post(
-                        toot["status"],
-                        language=toot["language"],
-                        media_ids=posted_media if posted_media else None
-                    )
+                    retry = 0
+                    toot = None
+                    while toot is None:
+                        try:
+                            self._logger.info("Tooting new post (retry: %d) %s", retry, toot["status"])
+                            toot = self._mastodon.status_post(
+                                toot["status"],
+                                language=toot["language"],
+                                media_ids=posted_media if posted_media else None
+                            )
+                            return toot
+                        except Exception as e:
+                            self._logger.exception(e)
+                            retry += 1
+                            if retry >= self.MAX_RETRIES:
+                                self._logger.error(f"MAX RETRIES of {self.MAX_RETRIES} is reached. Discarding toot.")
+                                break
+                            
             else:
                 self._logger.warn("Toot with published_at %s does not have an action, skipping.", toot["published_at"])
     
