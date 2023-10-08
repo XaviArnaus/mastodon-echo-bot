@@ -58,7 +58,7 @@ class Publisher:
                     toot = None
                     while toot is None:
                         try:
-                            self._logger.info("Tooting new post (retry: %d) %s", retry, toot["status"])
+                            self._logger.info(f"Tooting new post (retry: {retry}) %s", toot["status"])
                             toot = self._mastodon.status_post(
                                 toot["status"],
                                 language=toot["language"],
