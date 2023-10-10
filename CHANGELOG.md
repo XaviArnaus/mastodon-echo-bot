@@ -1,5 +1,12 @@
 # Changelog
 
+## [v0.1.2](https://github.com/XaviArnaus/mastodon-echo-bot/releases/tag/v0.1.2)
+
+### Changed
+
+- Bugfix on the `Publisher` class introduced in the previous version `v0.1.1` that refused to publish any post.
+- Pinning `pyxavi` to the current set up `v0.3.2` to avoid receiving the deprecation of `logger.getLogger()`
+
 ## [v0.1.1](https://github.com/XaviArnaus/mastodon-echo-bot/releases/tag/v0.1.1)
 
 ### Added

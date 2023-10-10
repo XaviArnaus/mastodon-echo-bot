@@ -58,7 +58,7 @@ class Publisher:
                                 self._logger.info("Could not post %s", media_file)
                     retry = 0
                     published = None
-                    while toot is None:
+                    while published is None:
                         try:
                             self._logger.info(f"Tooting new post (retry: {retry}) %s", toot["status"])
                             published = self._mastodon.status_post(
