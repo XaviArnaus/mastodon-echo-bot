@@ -8,7 +8,7 @@ class Runner:
     '''
     def init(self):
         self._config = Config()
-        self._logger = Logger(self._config).get_logger()
+        self._logger = Logger(self._config).getLogger()
         self._logger.info("Init Runner")
 
         return self

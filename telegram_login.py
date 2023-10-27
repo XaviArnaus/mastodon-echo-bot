@@ -14,7 +14,7 @@ from src.parsers.telegram_parser import TelegramParser
 class TelegramLogin:
     def init(self):
         self._config = Config()
-        self._logger = Logger(self._config).get_logger()
+        self._logger = Logger(self._config).getLogger()
         self._logger.info("Init Login Telegram")
 
         return self
