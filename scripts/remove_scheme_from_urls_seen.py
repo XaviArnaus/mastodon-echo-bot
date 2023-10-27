@@ -41,7 +41,8 @@ for key in keys:
     for url in urls:
         new_url = Url.clean(url=url, remove_components=CLEANING_PARAMS)
         log(f"{url} => {new_url}")
-        new_urls.append(new_url)
+        if new_url not in new_urls:
+            new_urls.append(new_url)
     
     # Now we replace the parameter with the new URL list
     storage.set(storage_parameter, new_urls)

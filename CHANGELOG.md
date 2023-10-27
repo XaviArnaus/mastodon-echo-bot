@@ -1,5 +1,11 @@
 # Changelog
 
+## [v0.1.5](https://github.com/XaviArnaus/mastodon-echo-bot/releases/tag/v0.1.5)
+
+### Changed
+
+- Adding a simple deduplication strategy into the feed migration script to remove duplicates that appear when cleaning the URL.
+
 ## [v0.1.4](https://github.com/XaviArnaus/mastodon-echo-bot/releases/tag/v0.1.4)
 
 ### Changed
