@@ -12,6 +12,7 @@ from time import mktime
 import feedparser
 import logging
 import re
+from urllib.parse import urlparse
 
 class FeedParser:
     '''
@@ -69,6 +70,36 @@ class FeedParser:
 
         return result
 
+    @staticmethod
+    def clean_url(url, remove_components: dict = {}) -> str:
+
+        to_remove = {
+            "scheme": False,
+            "netloc": False,
+            "path": False,
+            "params": False,
+            "query": False,
+            "fragment": False
+        }
+        to_remove = {**to_remove, **remove_components}
+
+        parsed = urlparse(url)
+        
+        if to_remove["scheme"] is True:
+            parsed = parsed._replace(scheme="")
+        if to_remove["netloc"] is True:
+            parsed._replace(netloc="")
+        if to_remove["path"] is True:
+            parsed = parsed._replace(path="")
+        if to_remove["params"] is True:
+            parsed = parsed._replace(params="")
+        if to_remove["query"] is True:
+            parsed = parsed._replace(query="")
+        if to_remove["fragment"] is True:
+            parsed = parsed._replace(fragment="")
+        
+        return parsed.geturl()
+
     def parse(self) -> None:
         
         # Do we have sites defined?
@@ -108,11 +139,12 @@ class FeedParser:
             for post in posts:
                 
                 # Check if this post was already seen
-                if post["link"] in urls_seen:
+                post_link = FeedParser.clean_url(post["link"], {"scheme": False})
+                if post_link in urls_seen:
                     self._logger.info("Discarding post: already seen %s", post["title"])
                     continue
                 else:
-                    urls_seen.append(post["link"])
+                    urls_seen.append(post_link)
                 
                 # In some cases we don't have a 'summary', but a 'description' field
                 if "summary" not in post and "description" in post:

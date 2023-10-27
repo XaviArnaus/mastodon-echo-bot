@@ -1,5 +1,15 @@
 # Changelog
 
+## [v0.1.3](https://github.com/XaviArnaus/mastodon-echo-bot/releases/tag/v0.1.3)
+
+### Added
+
+- A script to update the current *feeds* storage file so that the URLs loose their scheme.
+
+### Changed
+
+- Removed the `scheme` on the URLs stored in the *feeds* file to avoid duplicates, to overcome issues with RSS providers that changes from HTTPS to HTTP randomly (Hello #ivoox)
+
 ## [v0.1.2](https://github.com/XaviArnaus/mastodon-echo-bot/releases/tag/v0.1.2)
 
 ### Changed
