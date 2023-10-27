@@ -4,4 +4,4 @@ tweepy
 beautifulsoup4
 pytz
 telethon
-pyxavi==0.3.2
+pyxavi==0.6.0
