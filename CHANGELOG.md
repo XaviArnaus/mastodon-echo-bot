@@ -1,5 +1,11 @@
 # Changelog
 
+## [v0.1.4](https://github.com/XaviArnaus/mastodon-echo-bot/releases/tag/v0.1.4)
+
+### Changed
+
+- Pinning `pyxavi` to `v0.6.0`, acquiring the new `Url` class and the deprecation of `logger.getLogger()`
+
 ## [v0.1.3](https://github.com/XaviArnaus/mastodon-echo-bot/releases/tag/v0.1.3)
 
 ### Added
