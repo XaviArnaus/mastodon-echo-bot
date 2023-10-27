@@ -14,7 +14,7 @@ from mastodon import Mastodon
 class CreateApp:
     def init(self):
         self._config = Config()
-        self._logger = Logger(self._config).getLogger()
+        self._logger = Logger(self._config).get_logger()
         self._logger.info("Init Create App")
 
         return self
