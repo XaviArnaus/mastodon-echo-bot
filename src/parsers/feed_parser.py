@@ -1,6 +1,7 @@
 from pyxavi.config import Config
 from pyxavi.storage import Storage
 from pyxavi.media import Media
+from pyxavi.url import Url
 from ..queue import Queue
 from .keywords_filter import KeywordsFilter
 from datetime import datetime
@@ -12,7 +13,6 @@ from time import mktime
 import feedparser
 import logging
 import re
-from urllib.parse import urlparse
 
 class FeedParser:
     '''
@@ -70,35 +70,6 @@ class FeedParser:
 
         return result
 
-    @staticmethod
-    def clean_url(url, remove_components: dict = {}) -> str:
-
-        to_remove = {
-            "scheme": False,
-            "netloc": False,
-            "path": False,
-            "params": False,
-            "query": False,
-            "fragment": False
-        }
-        to_remove = {**to_remove, **remove_components}
-
-        parsed = urlparse(url)
-        
-        if to_remove["scheme"] is True:
-            parsed = parsed._replace(scheme="")
-        if to_remove["netloc"] is True:
-            parsed._replace(netloc="")
-        if to_remove["path"] is True:
-            parsed = parsed._replace(path="")
-        if to_remove["params"] is True:
-            parsed = parsed._replace(params="")
-        if to_remove["query"] is True:
-            parsed = parsed._replace(query="")
-        if to_remove["fragment"] is True:
-            parsed = parsed._replace(fragment="")
-        
-        return parsed.geturl()
 
     def parse(self) -> None:
         
@@ -139,7 +110,7 @@ class FeedParser:
             for post in posts:
                 
                 # Check if this post was already seen
-                post_link = FeedParser.clean_url(post["link"], {"scheme": False})
+                post_link = Url.clean(post["link"], {"scheme": True})
                 if post_link in urls_seen:
                     self._logger.info("Discarding post: already seen %s", post["title"])
                     continue

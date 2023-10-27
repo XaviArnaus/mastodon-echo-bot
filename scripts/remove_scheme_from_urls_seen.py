@@ -1,6 +1,5 @@
 from pyxavi.storage import Storage
-from urllib.parse import urlparse
-from pyxavi.debugger import dd
+from pyxavi.url import Url
 import os
 
 STORAGE_FILE = "storage/feeds.yaml"
@@ -17,35 +16,6 @@ def log(text: str) -> None:
 
 def error(text: str) -> None:
     print(f"{text}")
-
-def clean_url(url, remove_components: dict = {}) -> str:
-
-    to_remove = {
-        "scheme": False,
-        "netloc": False,
-        "path": False,
-        "params": False,
-        "query": False,
-        "fragment": False
-    }
-    to_remove = {**to_remove, **remove_components}
-
-    parsed = urlparse(url)
-    
-    if to_remove["scheme"] is True:
-        parsed = parsed._replace(scheme="")
-    if to_remove["netloc"] is True:
-        parsed._replace(netloc="")
-    if to_remove["path"] is True:
-        parsed = parsed._replace(path="")
-    if to_remove["params"] is True:
-        parsed = parsed._replace(params="")
-    if to_remove["query"] is True:
-        parsed = parsed._replace(query="")
-    if to_remove["fragment"] is True:
-        parsed = parsed._replace(fragment="")
-    
-    return parsed.geturl()
 
 # Load the file in a Storage instance
 if os.path.exists(STORAGE_FILE):
@@ -69,7 +39,7 @@ for key in keys:
     #   generating a new list of URLs
     new_urls = []
     for url in urls:
-        new_url = clean_url(url=url, remove_components=CLEANING_PARAMS)
+        new_url = Url.clean(url=url, remove_components=CLEANING_PARAMS)
         log(f"{url} => {new_url}")
         new_urls.append(new_url)
     

@@ -9,7 +9,7 @@ class QueuePublisher:
     '''
     def init(self):
         self._config = Config()
-        self._logger = Logger(self._config).getLogger()
+        self._logger = Logger(self._config).get_logger()
 
         return self
 
