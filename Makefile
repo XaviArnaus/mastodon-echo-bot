@@ -24,3 +24,7 @@ publish_queue:
 .PHONY: validate_config
 validate_config:
 	@$(PYTHON) -c 'import yaml;yaml.safe_load(open("config.yaml"))' > /dev/null && echo "\033[0;32mThe Config is correct\033[0m" || echo "\033[0;31mThe Config has an error\033[0m"
+
+.PHONY: migrate_feed_queue
+migrate_feed_queue:
+	$(PYTHON) scripts/remove_scheme_from_urls_seen.py
