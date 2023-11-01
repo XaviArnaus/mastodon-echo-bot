@@ -28,3 +28,7 @@ validate_config:
 .PHONY: migrate_feed_queue
 migrate_feed_queue:
 	$(PYTHON) scripts/remove_scheme_from_urls_seen.py
+
+.PHONY: test_janitor
+test_janitor:
+	$(PYTHON) test_janitor.py

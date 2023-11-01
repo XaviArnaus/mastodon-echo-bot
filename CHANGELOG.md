@@ -1,5 +1,11 @@
 # Changelog
 
+## [v0.1.6](https://github.com/XaviArnaus/mastodon-echo-bot/releases/tag/v0.1.6)
+
+### Added
+
+- A new runner to test the current state of the Janitor monitoring
+
 ## [v0.1.5](https://github.com/XaviArnaus/mastodon-echo-bot/releases/tag/v0.1.5)
 
 ### Changed
