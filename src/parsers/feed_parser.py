@@ -85,7 +85,7 @@ class FeedParser:
             keywords_filter_profile = site["keywords_filter_profile"] \
                 if "keywords_filter_profile" in site and site["keywords_filter_profile"] else None
 
-            self._logger.info("Getting possible stored data for %s", site["name"])
+            self._logger.debug("Getting possible stored data for %s", site["name"])
             site_data = self._feeds_storage.get_hashed(site["url"], None)
         
             self._logger.info("Parsing site %s", site["name"])
@@ -97,12 +97,20 @@ class FeedParser:
                 metadata = {
                     "language": parsed_site["feed"]["language"] if "language" in parsed_site["feed"] else site["language_default"]
                 }
-
+            
             if not "entries" in parsed_site or not parsed_site["entries"]:
                 self._logger.warn("No entries in this feed, skipping.")
+                break
+            
+            self._logger.debug(f"Filter out entries without 'published_parsed' from {len(parsed_site['entries'])} current.")
+            posts = list(filter(lambda x: "published_parsed" in x, parsed_site["entries"]))
 
-            self._logger.info("Sorting %d entries ASC", len(parsed_site["entries"]))
-            posts = sorted(parsed_site["entries"], key=lambda x: x["published_parsed"])
+            if not posts:
+                self._logger.warn("No entries in this feed after filtering, skipping.")
+                break
+
+            self._logger.info("Sorting %d entries ASC", len(posts))
+            posts = sorted(posts, key=lambda x: x["published_parsed"])
 
             # Keep track of the post seen.
             urls_seen = site_data["urls_seen"] if site_data and "urls_seen" in site_data else []
