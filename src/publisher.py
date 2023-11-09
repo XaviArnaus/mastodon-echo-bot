@@ -1,88 +1,134 @@
 from pyxavi.config import Config
-from pyxavi.storage import Storage
 from pyxavi.media import Media
 from .queue import Queue
 from mastodon import Mastodon
+from .mastodon_helper import MastodonHelper
+from .mastodon_connection_params import MastodonConnectionParams
+from .status_post import StatusPost, StatusPostVisibility, StatusPostContentType
 import logging
 import time
+import os
+from pyxavi.debugger import dd
+
 
 class Publisher:
     '''
     Publisher
 
-    It is responsible to re-toot the queued toots.
-    There are 2 methods, depending if we want to publish all in one shot or just the older one
+    It is responsible to publish the queued status posts.
     '''
 
     MAX_RETRIES = 3
     SLEEP_TIME = 10
 
-    def __init__(self, config: Config, mastodon: Mastodon) -> None:
+    # These params are supported in Janitor but not in Echo,
+    #   so we set them up here by now waiting for a next iteration for Echo.
+    STATUS_PARAMS = {
+        "max_length": 500,
+        "content_type": StatusPostContentType.PLAIN,
+        "visibility": StatusPostVisibility.PUBLIC,
+        "username_to_dm": None
+    }
+
+    def __init__(
+        self,
+        config: Config,
+        base_path: str = None,
+        only_oldest: bool = False
+    ) -> None:
         self._config = config
         self._logger = logging.getLogger(config.get("logger.name"))
         self._queue = Queue(config)
-        self._mastodon = mastodon
+        self._connection_params = self._get_connection_params(config=config)
+        self._instance_type = MastodonHelper.valid_or_raise(
+            self._connection_params.instance_type
+        )
+        self._base_path = base_path
+        self._is_dry_run = config.get("publisher.dry_run", False)
+        self._media_storage = self._config.get("publisher.media_storage")
 
+        self._mastodon = self._get_mastodon_instance()
+        self._only_oldest = only_oldest if only_oldest is not None\
+            else config.get("publisher.only_oldest_post_every_iteration", False)
+
+    
     def _execute_action(self, toot: dict) -> dict:
-        if not self._config.get("publisher.dry_run"):
-            if "action" in toot and toot["action"]:
-                if toot["action"] == "reblog":
-                    self._logger.info("Retooting post %d", toot["id"])
-                    return self._mastodon.status_reblog(
-                        toot["id"]
-                    )
-                elif toot["action"] == "new":
-                    posted_media = []
-                    if "media" in toot and toot["media"]:
-                        self._logger.info("Posting first %s media items", len(toot["media"]))
-                        for item in toot["media"]:
-                            shall_download = True
-                            if "url" in item and item["url"] is not None:
-                                media_file = item["url"]
-                            elif "path" in item and item["path"] is not None:
-                                media_file = item["path"]
-                                shall_download = False
+        if self._is_dry_run:
+            self._logger.debug("It's a Dry Run, stopping here.")
+            return None
 
-                            else:
-                                self._logger.warning("the Media to post does not have an URL or a PATH")
-                                continue
-                            posted_result = self._post_media(
-                                media_file=media_file,
-                                download_file=shall_download,
-                                description=item["alt_text"] if "alt_text" in item else None,
-                                mime_type=item["mime_type"] if "mime_type" in item else None
-                            )
-                            if posted_result:
-                                posted_media.append(posted_result["id"])
-                            else:
-                                self._logger.info("Could not post %s", media_file)
-                    retry = 0
-                    published = None
-                    while published is None:
-                        try:
-                            self._logger.info(f"Tooting new post (retry: {retry}) %s", toot["status"])
-                            published = self._mastodon.status_post(
-                                toot["status"],
-                                language=toot["language"],
-                                media_ids=posted_media if posted_media else None
-                            )
-                            return published
-                        except Exception as e:
-                            self._logger.exception(e)
-                            self._logger.debug(f"sleeping {self.SLEEP_TIME} seconds")
-                            time.sleep(self.SLEEP_TIME)
-                            retry += 1
-                            if retry >= self.MAX_RETRIES:
-                                self._logger.error(f"MAX RETRIES of {self.MAX_RETRIES} is reached. Discarding toot.")
-                                break
-                            
-            else:
-                self._logger.warn("Toot with published_at %s does not have an action, skipping.", toot["published_at"])
+        if "action" in toot and toot["action"]:
+            if toot["action"] == "reblog":
+                self._logger.info("Retooting post %d", toot["id"])
+                return self._mastodon.status_reblog(
+                    toot["id"]
+                )
+            elif toot["action"] == "new":
+                posted_media = []
+                if "media" in toot and toot["media"] and self._instance_type != MastodonHelper.TYPE_FIREFISH:
+                    self._logger.info("Posting first %s media items", len(toot["media"]))
+                    for item in toot["media"]:
+                        shall_download = True
+                        if "url" in item and item["url"] is not None:
+                            media_file = item["url"]
+                        elif "path" in item and item["path"] is not None:
+                            media_file = item["path"]
+                            shall_download = False
+
+                        else:
+                            self._logger.warning("the Media to post does not have an URL or a PATH")
+                            continue
+                        posted_result = self._post_media(
+                            media_file=media_file,
+                            download_file=shall_download,
+                            description=item["alt_text"] if "alt_text" in item else None,
+                            mime_type=item["mime_type"] if "mime_type" in item else None
+                        )
+                        if posted_result:
+                            posted_media.append(posted_result["id"])
+                        else:
+                            self._logger.info("Could not post %s", media_file)
+                
+                # Let's ensure that it fits according to the params
+                toot["status"] = self.__slice_status_if_longer_than_defined(
+                    status=toot["status"]
+                )
+
+                # Avoid posting if there's no image AND no body
+                if len(posted_media) == 0 and len(toot["status"]) == 0:
+                    self._logger.warning("No media AND no body, skipping this post")
+                    return None
+
+                retry = 0
+                published = None
+                while published is None:
+                    try:
+                        self._logger.info(f"Tooting new post (retry: {retry}) \"%s\"]", toot["status"])
+                        status_post = StatusPost(
+                            status=toot["status"],
+                            language=toot["language"],
+                            media_ids=posted_media if posted_media else None,
+                            visibility=self._connection_params.status_params.visibility,
+                            content_type=self._connection_params.status_params.content_type,
+                        )
+                        published = self._do_status_publish(status_post=status_post)
+                        return published
+                    except Exception as e:
+                        self._logger.exception(e)
+                        self._logger.debug(f"sleeping {self.SLEEP_TIME} seconds")
+                        time.sleep(self.SLEEP_TIME)
+                        retry += 1
+                        if retry >= self.MAX_RETRIES:
+                            self._logger.error(f"MAX RETRIES of {self.MAX_RETRIES} is reached. Discarding toot.")
+                            break
+                        
+        else:
+            self._logger.warn("Toot with published_at %s does not have an action, skipping.", toot["published_at"])
     
     def _post_media(self, media_file: str, download_file: bool, description: str, mime_type: str = None) -> dict:
         try:
             if download_file is True:
-                downloaded = Media().download_from_url(media_file, self._config.get("publisher.media_storage"))
+                downloaded = Media().download_from_url(media_file, self._media_storage)
             else:
                 downloaded = {
                     "file": media_file,
@@ -103,23 +149,134 @@ class Publisher:
             self._logger.info("The queue is empty, skipping.")
             return
 
-        for queued_toot in self._queue.get_all():
-            self._execute_action(queued_toot)
+        while not self._queue.is_empty():
+            # Get the first element from the queue
+            queued_post = self._queue.pop()
+            # Publish it
+            self._execute_action(queued_post)
+            # Do we want to publish only the oldest in every iteration?
+            #   This means that the queue gets empty one item every run
+            if self._only_oldest:
+                self._logger.info(
+                    f"We're meant to publish only the oldest. Finishing."
+                )
+                break
 
-        self._logger.info("Cleaning stored queue")
-        if not self._config.get("publisher.dry_run"):
-            self._queue.clean()
+        if not self._is_dry_run:
             self._queue.save()
 
-    
-    def publish_older_from_queue(self) -> None:
-        if self._queue.is_empty():
-            self._logger.info("The queue is empty, skipping.")
-            return
+    def _do_status_publish(self, status_post: StatusPost) -> dict:
+        """
+        This is the method that executes the post of the status.
 
-        self._execute_action(self._queue.pop())
+        No checks, no validations, just the action.
+        """
 
-        if not self._config.get("publisher.dry_run"):
-            self._queue.save()
+        if self._instance_type == MastodonHelper.TYPE_MASTODON:
+            published = self._mastodon.status_post(
+                status=status_post.status,
+                in_reply_to_id=status_post.in_reply_to_id,
+                media_ids=status_post.media_ids,
+                sensitive=status_post.sensitive,
+                visibility=status_post.visibility,
+                spoiler_text=status_post.spoiler_text,
+                language=status_post.language,
+                idempotency_key=status_post.idempotency_key,
+                scheduled_at=status_post.scheduled_at,
+                poll=status_post.poll
+            )
+        elif self._instance_type == MastodonHelper.TYPE_PLEROMA:
+            published = self._mastodon.status_post(
+                status=status_post.status,
+                in_reply_to_id=status_post.in_reply_to_id,
+                media_ids=status_post.media_ids,
+                sensitive=status_post.sensitive,
+                visibility=status_post.visibility,
+                spoiler_text=status_post.spoiler_text,
+                language=status_post.language,
+                idempotency_key=status_post.idempotency_key,
+                content_type=status_post.content_type,
+                scheduled_at=status_post.scheduled_at,
+                poll=status_post.poll,
+                quote_id=status_post.quote_id
+            )
+        elif self._instance_type == MastodonHelper.TYPE_FIREFISH:
+            published = self._mastodon.status_post(
+                status=status_post.status,
+                in_reply_to_id=status_post.in_reply_to_id,
+                media_ids=status_post.media_ids,
+                sensitive=status_post.sensitive,
+                visibility=status_post.visibility,
+                spoiler_text=status_post.spoiler_text,
+                # language=status_post.language,
+                idempotency_key=status_post.idempotency_key,
+                content_type=status_post.content_type,
+                scheduled_at=status_post.scheduled_at,
+                poll=status_post.poll,
+                quote_id=status_post.quote_id
+            )
+        else:
+            raise RuntimeError(f"Unknown instance type {self._instance_type}")
+        return published
+
+    def __slice_status_if_longer_than_defined(self, status: str) -> str:
+        max_length = self._connection_params.status_params.max_length
+        if len(status) > max_length:
+            self._logger.debug(
+                f"The status post is longer than the max length of {max_length}. Cutting..."
+            )
+            status = status[:max_length - 3] + "..."
+
+        return status
+
+    def _get_mastodon_instance(self) -> Mastodon:
+        # If the client_file does not exist we need to trigger the
+        #   create app action.
+        client_file = os.path.join(
+            self._base_path, self._connection_params.credentials.client_file
+        )
+        if not os.path.exists(client_file):
+            MastodonHelper.create_app(
+                instance_type=self._connection_params.instance_type,
+                client_name=self._connection_params.app_name,
+                api_base_url=self._connection_params.api_base_url,
+                to_file=client_file
+            )
+
+        # Instantiate and return
+        return MastodonHelper.get_instance(
+            config=self._config, connection_params=self._connection_params
+        )
+
+    def _get_connection_params(self, config: Config) -> MastodonConnectionParams:
+        return MastodonConnectionParams.from_dict(
+            {
+                "app_name": config.get("app.name"),
+                "api_base_url": config.get("app.api_base_url"),
+                "instance_type": config.get("app.instance_type"),
+                "credentials": {
+                    "client_file": config.get("app.client_credentials"),
+                    "user_file": config.get("app.user_credentials"),
+                    "user": {
+                        "email": config.get("app.user.email"),
+                        "password": config.get("app.user.password")
+                    }
+                },
+                # Configuration regarding the Status itself
+                "status_params": {
+                    # [Integer] Status max length
+                    "max_length": self.STATUS_PARAMS["max_length"],
+                    # [String] Status Post content type: "text/plain" | "text/markdown" | "text/html" | "text/bbcode"
+                    # Only vaild for Pleroma and Akkoma instances. Mastodon instances will ignore it
+                    "content_type": self.STATUS_PARAMS["content_type"],
+                    # [String] Status Post visibility: "direct" | "private" | "unlisted" | "public"
+                    "visibility": self.STATUS_PARAMS["visibility"],
+                    # [String] Username to mention for "direct" visibility
+                    "username_to_dm": self.STATUS_PARAMS["username_to_dm"]
+                }
+            }
+        )
 
 
+class PublisherException(BaseException):
+    pass

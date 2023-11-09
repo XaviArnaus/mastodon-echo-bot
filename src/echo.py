@@ -1,12 +1,12 @@
 from pyxavi.config import Config
 from pyxavi.janitor import Janitor
 from pyxavi.debugger import full_stack
-from .mastodon_helper import MastodonHelper
 from .parsers.mastodon_parser import MastodonParser
 from .parsers.feed_parser import FeedParser
 from .parsers.twitter_parser import TwitterParser
 from .parsers.telegram_parser import TelegramParser
 from .publisher import Publisher
+from definitions import ROOT_DIR
 import logging
 
 class Echo:
@@ -16,6 +16,11 @@ class Echo:
     def __init__(self, config: Config) -> None:
         self._config = config
         self._logger = logging.getLogger(config.get("logger.name"))
+        self._publisher = Publisher(
+            config=self._config,
+            base_path=ROOT_DIR,
+            only_oldest=self._config.get("publisher.only_older_toot")
+        )
 
     def run(self) -> None:
         '''
@@ -27,23 +32,20 @@ class Echo:
         Set the behaviour in the config.yaml
         '''
         try:
-            # All actions are done under a Mastodon API instance
-            mastodon = MastodonHelper.get_instance(self._config)
+            # # Parses the defined mastodon accounts
+            # # and merges the toots to the already existing queue       
+            # mastodon_parser = MastodonParser(self._config)
+            # mastodon_parser.parse(self._publisher._mastodon)
 
-            # Parses the defined mastodon accounts
-            # and merges the toots to the already existing queue       
-            mastodon_parser = MastodonParser(self._config)
-            mastodon_parser.parse(mastodon)
+            # # Parses the defined feeds
+            # # and merges the toots to the already existing queue
+            # feed_parser = FeedParser(self._config)
+            # feed_parser.parse()
 
-            # Parses the defined feeds
-            # and merges the toots to the already existing queue
-            feed_parser = FeedParser(self._config)
-            feed_parser.parse()
-
-            # Parses the defined twitter accounts
-            # and merges the toots to the already existing queue
-            twitter_parser = TwitterParser(self._config)
-            twitter_parser.parse()
+            # # Parses the defined twitter accounts
+            # # and merges the toots to the already existing queue
+            # twitter_parser = TwitterParser(self._config)
+            # twitter_parser.parse()
 
             # Parses the defined Telegram channels
             # and merges the toots to the already existing queue
@@ -52,13 +54,8 @@ class Echo:
 
             # Read from the queue the toots to publish
             # and do so according to the config parameters
-            publisher = Publisher(self._config, mastodon)
-            if self._config.get("publisher.only_older_toot"):
-                self._logger.info("Publishing the older post")
-                publisher.publish_older_from_queue()
-            else:
-                self._logger.info("Publishing the whole queue")
-                publisher.publish_all_from_queue()
+            self._publisher.publish_all_from_queue()
+
         except Exception as e:
             if self._config.get("janitor.active", False):
                 remote_url = self._config.get("janitor.remote_url")
@@ -70,4 +67,3 @@ class Echo:
                     )
 
             self._logger.exception(e)
-
