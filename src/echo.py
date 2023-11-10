@@ -32,20 +32,20 @@ class Echo:
         Set the behaviour in the config.yaml
         '''
         try:
-            # # Parses the defined mastodon accounts
-            # # and merges the toots to the already existing queue       
-            # mastodon_parser = MastodonParser(self._config)
-            # mastodon_parser.parse(self._publisher._mastodon)
+            # Parses the defined mastodon accounts
+            # and merges the toots to the already existing queue       
+            mastodon_parser = MastodonParser(self._config)
+            mastodon_parser.parse(self._publisher._mastodon)
 
-            # # Parses the defined feeds
-            # # and merges the toots to the already existing queue
-            # feed_parser = FeedParser(self._config)
-            # feed_parser.parse()
+            # Parses the defined feeds
+            # and merges the toots to the already existing queue
+            feed_parser = FeedParser(self._config)
+            feed_parser.parse()
 
-            # # Parses the defined twitter accounts
-            # # and merges the toots to the already existing queue
-            # twitter_parser = TwitterParser(self._config)
-            # twitter_parser.parse()
+            # Parses the defined twitter accounts
+            # and merges the toots to the already existing queue
+            twitter_parser = TwitterParser(self._config)
+            twitter_parser.parse()
 
             # Parses the defined Telegram channels
             # and merges the toots to the already existing queue
