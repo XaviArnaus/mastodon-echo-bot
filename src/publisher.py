@@ -65,7 +65,7 @@ class Publisher:
                 )
             elif toot["action"] == "new":
                 posted_media = []
-                if "media" in toot and toot["media"] and self._instance_type != MastodonHelper.TYPE_FIREFISH:
+                if "media" in toot and toot["media"]:
                     self._logger.info("Posting first %s media items", len(toot["media"]))
                     for item in toot["media"]:
                         shall_download = True
