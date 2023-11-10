@@ -24,7 +24,7 @@ class Publisher:
     # These params are supported in Janitor but not in Echo,
     #   so we set them up here by now waiting for a next iteration for Echo.
     STATUS_PARAMS = {
-        "max_length": 500,
+        "max_length": 1000,
         "content_type": StatusPostContentType.PLAIN,
         "visibility": StatusPostVisibility.PUBLIC,
         "username_to_dm": None
@@ -164,6 +164,13 @@ class Publisher:
 
         if not self._is_dry_run:
             self._queue.save()
+    
+    def reload_queue(self) -> int:
+        # Previous length
+        previous = self._queue.length()
+        new = self._queue.load()
+
+        return new - previous
 
     def _do_status_publish(self, status_post: StatusPost) -> dict:
         """

@@ -54,6 +54,9 @@ class Echo:
 
             # Read from the queue the toots to publish
             # and do so according to the config parameters
+            difference = self._publisher.reload_queue()
+            difference = f"+{str(difference)}" if difference > 0 else str(difference)
+            self._logger.info(f"The queue has now {difference} elements")
             self._publisher.publish_all_from_queue()
 
         except Exception as e:

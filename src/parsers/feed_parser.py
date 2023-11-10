@@ -149,7 +149,9 @@ class FeedParser:
                     continue
                 
                 # Prepare the new toot
+                self._logger.debug("The post [%s] made it to the end.", post["title"])
                 media = self._parse_media(post)
+                self._logger.debug("The post [%s] has %d media elements", post["title"], len(media))
                 self._queue.append(
                     {
                         "status": self._format_toot(post, site["name"],site),
@@ -159,6 +161,7 @@ class FeedParser:
                         "action": "new"
                     }
                 )
+                self._logger.debug("The post [%s] has been added tot he queue", post["title"])
 
             # Update our storage with what we found
             self._logger.debug("Updating gathered site data for %s", site["name"])

@@ -1,16 +1,23 @@
 from pyxavi.config import Config
 from pyxavi.storage import Storage
 import logging
+from pyxavi.debugger import dd
 
 class Queue:
 
+    DEFAULT_STORAGE_FILE = "storage/queue.yaml"
     _queue = []
 
     def __init__(self, config: Config) -> None:
         self._config = config
         self._logger = logging.getLogger(config.get("logger.name"))
-        self._toots_queue = Storage(self._config.get("toots_queue_storage.file"))
+        self.__storage_file = config.get("toots_queue_storage.file", self.DEFAULT_STORAGE_FILE)
+        self.load()
+    
+    def load(self) -> int:
+        self._toots_queue = Storage(self.__storage_file)
         self._queue = self._toots_queue.get("queue", [])
+        return self.length()
     
     def append(self, item = dict) -> None:
         self._queue.append(item)
@@ -43,6 +50,9 @@ class Queue:
     
     def clean(self) -> None:
         self._queue = []
+    
+    def length(self) -> int:
+        return len(self._queue)
     
     def pop(self) -> dict:
         if not self.is_empty():
