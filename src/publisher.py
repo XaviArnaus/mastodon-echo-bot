@@ -52,7 +52,7 @@ class Publisher:
             else config.get("publisher.only_oldest_post_every_iteration", False)
 
     
-    def _execute_action(self, toot: dict) -> dict:
+    def _execute_action(self, toot: dict, previous_id: int = None) -> dict:
         if self._is_dry_run:
             self._logger.debug("It's a Dry Run, stopping here.")
             return None
@@ -107,6 +107,7 @@ class Publisher:
                         status_post = StatusPost(
                             status=toot["status"],
                             language=toot["language"],
+                            in_reply_to_id=previous_id if previous_id else None,
                             media_ids=posted_media if posted_media else None,
                             visibility=self._connection_params.status_params.visibility,
                             content_type=self._connection_params.status_params.content_type,
@@ -149,21 +150,57 @@ class Publisher:
             self._logger.info("The queue is empty, skipping.")
             return
 
-        while not self._queue.is_empty():
+        should_continue = True
+        previous_id = None
+        while should_continue and not self._queue.is_empty():
             # Get the first element from the queue
             queued_post = self._queue.pop()
             # Publish it
-            self._execute_action(queued_post)
-            # Do we want to publish only the oldest in every iteration?
-            #   This means that the queue gets empty one item every run
-            if self._only_oldest:
-                self._logger.info(
-                    f"We're meant to publish only the oldest. Finishing."
-                )
-                break
+            result = self._execute_action(queued_post, previous_id=previous_id)
+            # Let's capture the ID in case we want to do a thread
+            if result is not None:
+                # If it's a dry-run, there won't be any result returned.
+                previous_id = result["id"]
+                self._logger.debug(f"Post was published with ID {previous_id}")
+
+            # Maybe we have several posts in a group that we need to post
+            #  all together, regardless of the rest of conditions
+            if previous_id is not None and "group_id" in queued_post and\
+                self.__next_in_queue_matches_group_id(queued_post["group_id"]):
+                self._logger.debug("Post was published and there are more in this group. Continue")
+                should_continue = True
+            else:
+                # Do we want to publish only the oldest in every iteration?
+                #   This means that the queue gets empty one item every run
+                if self._only_oldest:
+                    self._logger.info(
+                        f"We're meant to publish only the oldest. Finishing."
+                    )
+                    should_continue = False
 
         if not self._is_dry_run:
             self._queue.save()
+    
+    def __next_in_queue_matches_group_id(self, group_id: str) -> bool:
+        """
+        Posts may have an ID representing a belonging group.
+            They mostly come from slicing posts due to length,
+            so we want to do a thread.
+
+        True if the next in the queue also have the same ID,
+            otherwise False
+        """
+        if self._queue.is_empty():
+            return False
+        
+        queued_post = self._queue.first()
+        if queued_post is not None and not "group_id" in queued_post:
+            return False
+        
+        if queued_post["group_id"] == group_id:
+            return True
+        
+        return False
     
     def reload_queue(self) -> int:
         # Previous length

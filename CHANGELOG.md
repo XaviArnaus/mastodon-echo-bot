@@ -7,6 +7,10 @@
 - Support for Firefish instances. This is an initial step to bring together the Publishing features between this Echo bot and the [Janitor](https://github.com/XaviArnaus/janitor) projects.
 - A new runner to test the current state of the Publishing to Mastodon API flow
 
+### Changed
+
+- The split content (basically done in the Telegram parser) is published as a thread and not as individual posts anymore
+
 ## [v0.1.6](https://github.com/XaviArnaus/mastodon-echo-bot/releases/tag/v0.1.6)
 
 ### Added
