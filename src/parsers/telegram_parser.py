@@ -9,6 +9,7 @@ from dateutil.relativedelta import relativedelta
 import pytz
 import math
 import copy
+from hashlib import sha1
 
 
 class TelegramParser:
@@ -16,13 +17,14 @@ class TelegramParser:
     MAX_MEDIA_PER_STATUS = 4
     MAX_STATUS_LENGTH = 400
     DATE_FORMAT = "%Y-%m-%d"
+    DEFAULT_TELEGRAM_FILE = "storage/telegram.yaml"
 
     _telegram: TelegramClient
     
     def __init__(self, config: Config) -> None:
         self._config = config
         self._logger = logging.getLogger(config.get("logger.name"))
-        self._chats_storage = Storage(self._config.get("telegram_parser.storage_file"))
+        self._chats_storage = Storage(self._config.get("telegram_parser.storage_file", self.DEFAULT_TELEGRAM_FILE))
         self._queue = Queue(config)
     
     def telegram_ok(self) -> None:
@@ -247,6 +249,8 @@ class TelegramParser:
         self._logger.debug(f"Ideal num of status: {num_of_statuses_by_text} for text" +\
                            f" and {num_of_statuses_by_media} for media." +\
                            f" Generating {num_of_statuses} statuses")
+        identification = sha1(text.encode()).hexdigest()
+        self._logger.debug(f"This group of status has the ID: {identification}")
         for idx in range(num_of_statuses):
             status_num = idx + 1
 
@@ -274,7 +278,8 @@ class TelegramParser:
                     "media": media_to_post if media_to_post else None,
                     "language": chat_params["language"] or "en_US",
                     "published_at": status_date,
-                    "action": "new"
+                    "action": "new",
+                    "group_id": identification
                 }
             )
             

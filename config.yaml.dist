@@ -8,6 +8,11 @@ app:
   api_base_url: "https://mastodon.social"
   client_credentials: "client.secret"
   user_credentials: "user.secret"
+  # [String] Type of instance:
+  #   "mastodon" for Mastodon
+  #   "pleroma" for Pleroma / Akkoma
+  #   "firefish" for Firefish / Calckey
+  "instance_type": mastodon,
   user:
     email: "bot+echo@my-fancy.site"
     password: "SuperSecureP4ss"
