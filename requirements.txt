@@ -1,6 +1,5 @@
 Mastodon.py==1.8.0
 feedparser
-tweepy
 beautifulsoup4
 pytz
 telethon
