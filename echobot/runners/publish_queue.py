@@ -1,20 +1,21 @@
-from pyxavi.logger import Logger
 from pyxavi.config import Config
-from echobot.publisher import Publisher
+from echobot.lib.publisher import Publisher
+from echobot.runners.runner_protocol import RunnerProtocol
 from definitions import ROOT_DIR
+import logging
 
-class QueuePublisher:
+class QueuePublisher(RunnerProtocol):
     '''
     Main Runner of the Echo bot
     '''
-    def init(self):
-        self._config = Config()
-        self._logger = Logger(self._config).get_logger()
+    def __init__(
+        self, config: Config = None, logger: logging = None, params: dict = None
+    ) -> None:
+        self._config = config
+        self._logger = logger
         self._publisher = Publisher(
             config=self._config, base_path=ROOT_DIR
         )
-
-        return self
 
     def run(self):
         '''
@@ -25,7 +26,3 @@ class QueuePublisher:
             self._publisher.publish_all_from_queue()
         except Exception as e:
             self._logger.exception(e)
-
-if __name__ == '__main__':
-    QueuePublisher().init().run()
-

@@ -2,9 +2,15 @@
 
 ## [Unreleased](https://github.com/XaviArnaus/mastodon-echo-bot/)
 
+### Added
+
+- New CLI tool to perform tasks ([#10](https://github.com/XaviArnaus/mastodon-echo-bot/pull/10))
+
 ### Changed
 
 - The project now is managed by Poetry ([#10](https://github.com/XaviArnaus/mastodon-echo-bot/pull/10))
+- Internal code structure heavily changed ([#10](https://github.com/XaviArnaus/mastodon-echo-bot/pull/10))
+- Config structure changed from single config file to multiple config files ([#10](https://github.com/XaviArnaus/mastodon-echo-bot/pull/10))
 
 ### Removed
 

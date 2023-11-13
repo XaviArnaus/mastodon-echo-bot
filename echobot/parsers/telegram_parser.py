@@ -1,6 +1,6 @@
 from pyxavi.config import Config
 from pyxavi.storage import Storage
-from echobot.queue import Queue
+from echobot.lib.queue import Queue
 from telethon import TelegramClient
 from telethon.types import Message as TelegramMessage
 import logging

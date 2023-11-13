@@ -4,17 +4,20 @@ from pyxavi.debugger import full_stack
 from echobot.parsers.mastodon_parser import MastodonParser
 from echobot.parsers.feed_parser import FeedParser
 from echobot.parsers.telegram_parser import TelegramParser
-from echobot.publisher import Publisher
+from echobot.lib.publisher import Publisher
+from echobot.runners.runner_protocol import RunnerProtocol
 from definitions import ROOT_DIR
 import logging
 
-class Echo:
+class Echo(RunnerProtocol):
     '''
     Main Runner of the Echo bot
     '''
-    def __init__(self, config: Config) -> None:
+    def __init__(
+        self, config: Config = None, logger: logging = None, params: dict = None
+    ) -> None:
         self._config = config
-        self._logger = logging.getLogger(config.get("logger.name"))
+        self._logger = logger
         self._publisher = Publisher(
             config=self._config,
             base_path=ROOT_DIR,
@@ -64,3 +67,6 @@ class Echo:
                     )
 
             self._logger.exception(e)
+
+if __name__ == '__main__':
+    Echo().run()

@@ -1,0 +1,55 @@
+###########################
+#    Mastodon Echo Bot    #
+###########################
+
+# App Info
+app:
+  name: "Echo"
+  api_base_url: "https://mastodon.social"
+  client_credentials: "client.secret"
+  user_credentials: "user.secret"
+  # [String] Type of instance:
+  #   "mastodon" for Mastodon
+  #   "pleroma" for Pleroma / Akkoma
+  #   "firefish" for Firefish / Calckey
+  "instance_type": mastodon,
+  user:
+    email: "bot+echo@my-fancy.site"
+    password: "SuperSecureP4ss"
+
+# Logging config
+logger:
+  # [Integer] Log level: NOTSET=0 | DEBUG=10 | INFO=20 | WARN=30 | ERROR=40 | CRITICAL=50
+  loglevel: 10
+  # [String] Name of the logger
+  name: "mastodon_echo_bot"
+  # [Bool] Dump the log into a file
+  to_file: True
+  # [String] Path and filename of the log file
+  filename: "log/mastodon_echo_bot.log"
+  # [Bool] Dump the log into a stdout
+  to_stdout: True
+  # [String] Format of the log
+  format: "[%(asctime)s] %(levelname)-8s %(name)-12s %(message)s"
+
+# Janitor config
+janitor:
+  # [Bool] Use it. Defaults to false
+  active: False
+  # [String] URL with port where the messages will be delivered
+  remote_url: http://remote_url:5000
+
+# Storage for the toots queue registry
+toots_queue_storage:
+  # [String] Where to store it
+  file: "storage/toots_queue.yaml"
+
+publisher:
+# [String] Where to download the media to
+  media_storage: "storage/media/"
+  # [Bool] Performs a dry run: the queue is untouched and no re-toot is really done
+  # Check the logs/stdout to see the results
+  dry_run: True
+  # [Bool] Publish only the older post
+  # Useful if we have this boot executed often, so publishes a single toot in every run
+  only_older_toot: True

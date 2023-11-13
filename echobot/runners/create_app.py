@@ -1,6 +1,7 @@
 from pyxavi.config import Config
-from pyxavi.logger import Logger
 from mastodon import Mastodon
+from echobot.runners.runner_protocol import RunnerProtocol
+import logging
 
 #######
 # This is meant to be run just once.
@@ -11,13 +12,12 @@ from mastodon import Mastodon
 # Xavi
 ##
 
-class CreateApp:
-    def init(self):
-        self._config = Config()
-        self._logger = Logger(self._config).get_logger()
-        self._logger.info("Init Create App")
-
-        return self
+class CreateApp(RunnerProtocol):
+    def __init__(
+        self, config: Config = None, logger: logging = None, params: dict = None
+    ) -> None:
+        self._config = config
+        self._logger = logger
 
     def run(self):
         self._logger.info("Run Create App")
@@ -27,6 +27,3 @@ class CreateApp:
             to_file = self._config.get("app.client_credentials")
         )
         self._logger.info("End Create App")
-
-if __name__ == '__main__':
-    CreateApp().init().run()

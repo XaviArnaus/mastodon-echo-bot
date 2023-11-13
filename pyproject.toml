@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "echo-bot"
+name = "echobot"
 version = "0.2.0"
 description = "Bot that parses a list of RSS feeds, mastodon accounts or telegram channels and publishes to Mastodon. "
 authors = ["Xavier Arnaus <xavi@arnaus.net>"]
@@ -16,6 +16,7 @@ pyxavi = "^0.7.7"
 
 [tool.poetry.scripts]
 main = "runner:run"
+validate_config = "scripts.validate_config:run"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.0"

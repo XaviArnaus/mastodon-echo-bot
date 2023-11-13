@@ -2,17 +2,19 @@ from pyxavi.config import Config
 from pyxavi.storage import Storage
 from echobot.parsers.keywords_filter import KeywordsFilter
 from mastodon import Mastodon
-from echobot.queue import Queue
+from echobot.lib.queue import Queue
 import logging
 
 class MastodonParser:
     '''
     Parses the toots from the registered accounts and feed the queue list of toots to publish.
     '''
+    DEFAULT_STORAGE_FILE = "storage/accounts.yaml"
+
     def __init__(self, config: Config) -> None:
         self._config = config
         self._logger = logging.getLogger(config.get("logger.name"))
-        self._accounts_storage = Storage(config.get("mastodon_parser.storage_file"))
+        self._accounts_storage = Storage(config.get("mastodon_parser.storage_file", self.DEFAULT_STORAGE_FILE))
         self._queue = Queue(config)
         self._keywords_filter = KeywordsFilter(config)
 

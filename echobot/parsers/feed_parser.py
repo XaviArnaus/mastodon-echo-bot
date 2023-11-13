@@ -2,7 +2,7 @@ from pyxavi.config import Config
 from pyxavi.storage import Storage
 from pyxavi.media import Media
 from pyxavi.url import Url
-from echobot.queue import Queue
+from echobot.lib.queue import Queue
 from echobot.parsers.keywords_filter import KeywordsFilter
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
@@ -22,11 +22,12 @@ class FeedParser:
     '''
     CLEANR = re.compile('<.*?>|&([a-z0-9]+|#[0-9]{1,6}|#x[0-9a-f]{1,6});')
     MAX_SUMMARY_LENGTH = 300
+    DEFAULT_STORAGE_FILE = "storage/feeds.yaml"
 
     def __init__(self, config: Config) -> None:
         self._config = config
         self._logger = logging.getLogger(config.get("logger.name"))
-        self._feeds_storage = Storage(self._config.get("feed_parser.storage_file"))
+        self._feeds_storage = Storage(self._config.get("feed_parser.storage_file", self.DEFAULT_STORAGE_FILE))
         self._queue = Queue(config)
         self._media = Media()
         self._keywords_filter = KeywordsFilter(config)

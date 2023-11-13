@@ -1,22 +1,22 @@
 from pyxavi.terminal_color import TerminalColor
 from pyxavi.config import Config
-from pyxavi.logger import Logger
-from echobot.publisher import Publisher
+from echobot.lib.publisher import Publisher
+from echobot.runners.runner_protocol import RunnerProtocol
 from definitions import ROOT_DIR
+import logging
 
 DEFAULT_NAMED_ACCOUNT = ["test", "default"]
 
 
-class PublishTest:
+class PublishTest(RunnerProtocol):
     '''
     Runner that publishes a test
     '''
-
-    def init(self):
-        self._config = Config()
-        self._logger = Logger(self._config).get_logger()
-
-        return self
+    def __init__(
+        self, config: Config = None, logger: logging = None, params: dict = None
+    ) -> None:
+        self._config = config
+        self._logger = logger
 
     def run(self):
         '''
@@ -40,6 +40,3 @@ class PublishTest:
         except Exception as e:
             self._logger.exception(e)
             print(e)
-
-if __name__ == '__main__':
-    PublishTest().init().run()

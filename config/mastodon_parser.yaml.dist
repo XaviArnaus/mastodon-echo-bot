@@ -1,0 +1,30 @@
+###########################
+#    Mastodon Echo Bot    #
+###########################
+
+# The Mastodon Parser, in charge to query the defined accounts and get their toots
+mastodon_parser:
+  # [String] Where to store the accounts registry
+  storage_file: "storage/mastodon_accounts.yaml"
+  # [Bool] Ignore other visibility. If False it relays on visibility of the authenticated bot.
+  only_public_visibility: True
+  # [Bool] Ignore the last seen toot. If True will parse always all.
+  ignore_toots_offset: False
+  # [List of Objects] Which accounts to parse
+  accounts:
+    -
+      # [String] Full user notation
+      user: "@me@mastodon.social"
+      # [Bool] Queue the own toots?
+      toots: False
+      # [Bool] Queue the retoots done?
+      retoots: True
+      # [String|None]
+      keywords_filter_profile: "talamanca"
+      # [Bool] Automatically follow this account if the bot is not doing so already?
+      # This helps retreiving toots from federated server's accounts,
+      #   when the account is not being followed yet in this server.
+      # The follow will be WITH reblogs
+      auto_follow: True
+      # [Int] Max summary length. Default 300
+      max_summary_length: 400
