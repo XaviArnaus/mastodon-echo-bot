@@ -4,18 +4,18 @@ from echobot.runners.runner_protocol import RunnerProtocol
 from definitions import ROOT_DIR
 import logging
 
+
 class QueuePublisher(RunnerProtocol):
     '''
     Main Runner of the Echo bot
     '''
+
     def __init__(
         self, config: Config = None, logger: logging = None, params: dict = None
     ) -> None:
         self._config = config
         self._logger = logger
-        self._publisher = Publisher(
-            config=self._config, base_path=ROOT_DIR
-        )
+        self._publisher = Publisher(config=self._config, base_path=ROOT_DIR)
 
     def run(self):
         '''

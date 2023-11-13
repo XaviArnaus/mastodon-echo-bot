@@ -12,6 +12,7 @@ class PublishTest(RunnerProtocol):
     '''
     Runner that publishes a test
     '''
+
     def __init__(
         self, config: Config = None, logger: logging = None, params: dict = None
     ) -> None:
@@ -28,15 +29,16 @@ class PublishTest(RunnerProtocol):
                 f"{TerminalColor.MAGENTA}Publishing Test Message{TerminalColor.END}"
             )
             Publisher(
-                config=self._config,
-                base_path=ROOT_DIR
-            )._execute_action({
-                "action": "new",
-                "media": None,
-                "published_at": "2023-09-29 10:10:53+00:00",
-                "status":"This is a test",
-                "language":"en"
-            })
+                config=self._config, base_path=ROOT_DIR
+            )._execute_action(
+                {
+                    "action": "new",
+                    "media": None,
+                    "published_at": "2023-09-29 10:10:53+00:00",
+                    "status": "This is a test",
+                    "language": "en"
+                }
+            )
         except Exception as e:
             self._logger.exception(e)
             print(e)

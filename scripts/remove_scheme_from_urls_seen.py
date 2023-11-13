@@ -4,9 +4,7 @@ import os
 
 STORAGE_FILE = "storage/feeds.yaml"
 PARAM = "urls_seen"
-CLEANING_PARAMS = {
-    "scheme": True
-}
+CLEANING_PARAMS = {"scheme": True}
 DEBUG = True
 
 
@@ -14,8 +12,10 @@ def log(text: str) -> None:
     if DEBUG is True:
         print(f"{text}")
 
+
 def error(text: str) -> None:
     print(f"{text}")
+
 
 def run():
     # Load the file in a Storage instance
@@ -44,7 +44,7 @@ def run():
             log(f"{url} => {new_url}")
             if new_url not in new_urls:
                 new_urls.append(new_url)
-        
+
         # Now we replace the parameter with the new URL list
         storage.set(storage_parameter, new_urls)
         log(f"Stored back {len(new_urls)} urls in the hash {key}")

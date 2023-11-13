@@ -8,7 +8,9 @@ import logging
 # This tests that the Janitor Wrapper for errors is working properly
 ##
 
+
 class TestJanitor(RunnerProtocol):
+
     def __init__(
         self, config: Config = None, logger: logging = None, params: dict = None
     ) -> None:

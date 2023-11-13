@@ -9,10 +9,12 @@ from echobot.runners.runner_protocol import RunnerProtocol
 from definitions import ROOT_DIR
 import logging
 
+
 class Echo(RunnerProtocol):
     '''
     Main Runner of the Echo bot
     '''
+
     def __init__(
         self, config: Config = None, logger: logging = None, params: dict = None
     ) -> None:
@@ -35,7 +37,7 @@ class Echo(RunnerProtocol):
         '''
         try:
             # Parses the defined mastodon accounts
-            # and merges the toots to the already existing queue       
+            # and merges the toots to the already existing queue
             mastodon_parser = MastodonParser(self._config)
             mastodon_parser.parse(self._publisher._mastodon)
 
@@ -67,6 +69,7 @@ class Echo(RunnerProtocol):
                     )
 
             self._logger.exception(e)
+
 
 if __name__ == '__main__':
     Echo().run()

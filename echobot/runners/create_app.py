@@ -12,7 +12,9 @@ import logging
 # Xavi
 ##
 
+
 class CreateApp(RunnerProtocol):
+
     def __init__(
         self, config: Config = None, logger: logging = None, params: dict = None
     ) -> None:
@@ -23,7 +25,7 @@ class CreateApp(RunnerProtocol):
         self._logger.info("Run Create App")
         Mastodon.create_app(
             self._config.get("app.name"),
-            api_base_url = self._config.get("app.api_base_url"),
-            to_file = self._config.get("app.client_credentials")
+            api_base_url=self._config.get("app.api_base_url"),
+            to_file=self._config.get("app.client_credentials")
         )
         self._logger.info("End Create App")

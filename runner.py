@@ -33,9 +33,13 @@ COMMAND_MAP = {
     "echo": (SUBCOMMAND_TOKEN, "Performs tasks related to the bot itself"),
     "mastodon": (SUBCOMMAND_TOKEN, "Performs tasks related to the Mastodon-like API"),
     "janitor": (SUBCOMMAND_TOKEN, "Performs tasks related to the Janitor API"),
-    "telegram_login": (TelegramLogin, "Logs in into Telegram and stores the session internally"),
+    "telegram_login": (
+        TelegramLogin, "Logs in into Telegram and stores the session internally"
+    ),
     "validate_config": (IMPLEMENTED_IN_BASH_TOKEN, "Validates the current configs"),
-    "remove_scheme": (IMPLEMENTED_IN_BASH_TOKEN, "Removes the scheme from the Feed's seen URLs file"),
+    "remove_scheme": (
+        IMPLEMENTED_IN_BASH_TOKEN, "Removes the scheme from the Feed's seen URLs file"
+    ),
 }
 
 SUBCOMMAND_MAP = {
