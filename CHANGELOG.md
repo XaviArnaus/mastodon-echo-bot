@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased](https://github.com/XaviArnaus/mastodon-echo-bot/)
+
+### Removed
+
+- No more Twitter support
+
 ## [v0.1.7](https://github.com/XaviArnaus/mastodon-echo-bot/releases/tag/v0.1.7)
 
 ### Added
