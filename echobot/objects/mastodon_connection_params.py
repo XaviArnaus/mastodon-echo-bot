@@ -1,5 +1,5 @@
 from __future__ import annotations
-from .status_post import StatusPostContentType, StatusPostVisibility
+from echobot.objects.status_post import StatusPostContentType, StatusPostVisibility
 
 
 class MastodonConnectionParams():

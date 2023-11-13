@@ -1,8 +1,24 @@
-log/*
+# Python stuff
 **/__pycache__/
+
+# No secrets nor sessions
 *.secret
 *.session
+
+# Logs
+log/*
+
+# No user files
 storage/*.yaml
 storage/media/*
-config.yaml
 !**/.keep
+
+# No user config files
+config.yaml
+config/*.yaml
+
+# No coverage
+.coverage
+
+# No Mac Stuff
+.DS_Store

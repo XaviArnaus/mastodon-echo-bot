@@ -1,20 +1,25 @@
 from pyxavi.config import Config
 from pyxavi.janitor import Janitor
 from pyxavi.debugger import full_stack
-from .parsers.mastodon_parser import MastodonParser
-from .parsers.feed_parser import FeedParser
-from .parsers.telegram_parser import TelegramParser
-from .publisher import Publisher
+from echobot.parsers.mastodon_parser import MastodonParser
+from echobot.parsers.feed_parser import FeedParser
+from echobot.parsers.telegram_parser import TelegramParser
+from echobot.lib.publisher import Publisher
+from echobot.runners.runner_protocol import RunnerProtocol
 from definitions import ROOT_DIR
 import logging
 
-class Echo:
+
+class Echo(RunnerProtocol):
     '''
     Main Runner of the Echo bot
     '''
-    def __init__(self, config: Config) -> None:
+
+    def __init__(
+        self, config: Config = None, logger: logging = None, params: dict = None
+    ) -> None:
         self._config = config
-        self._logger = logging.getLogger(config.get("logger.name"))
+        self._logger = logger
         self._publisher = Publisher(
             config=self._config,
             base_path=ROOT_DIR,
@@ -32,7 +37,7 @@ class Echo:
         '''
         try:
             # Parses the defined mastodon accounts
-            # and merges the toots to the already existing queue       
+            # and merges the toots to the already existing queue
             mastodon_parser = MastodonParser(self._config)
             mastodon_parser.parse(self._publisher._mastodon)
 
@@ -64,3 +69,7 @@ class Echo:
                     )
 
             self._logger.exception(e)
+
+
+if __name__ == '__main__':
+    Echo().run()

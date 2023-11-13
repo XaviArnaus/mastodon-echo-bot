@@ -1,14 +1,14 @@
 from pyxavi.config import Config
 from pyxavi.media import Media
-from .queue import Queue
+from echobot.lib.queue import Queue
 from mastodon import Mastodon
-from .mastodon_helper import MastodonHelper
-from .mastodon_connection_params import MastodonConnectionParams
-from .status_post import StatusPost, StatusPostVisibility, StatusPostContentType
+from echobot.lib.mastodon_helper import MastodonHelper
+from echobot.objects.mastodon_connection_params import MastodonConnectionParams
+from echobot.objects.status_post import StatusPost,\
+    StatusPostVisibility, StatusPostContentType
 import logging
 import time
 import os
-from pyxavi.debugger import dd
 
 
 class Publisher:
@@ -31,10 +31,7 @@ class Publisher:
     }
 
     def __init__(
-        self,
-        config: Config,
-        base_path: str = None,
-        only_oldest: bool = False
+        self, config: Config, base_path: str = None, only_oldest: bool = False
     ) -> None:
         self._config = config
         self._logger = logging.getLogger(config.get("logger.name"))
@@ -51,7 +48,6 @@ class Publisher:
         self._only_oldest = only_oldest if only_oldest is not None\
             else config.get("publisher.only_oldest_post_every_iteration", False)
 
-    
     def _execute_action(self, toot: dict, previous_id: int = None) -> dict:
         if self._is_dry_run:
             self._logger.debug("It's a Dry Run, stopping here.")
@@ -60,9 +56,7 @@ class Publisher:
         if "action" in toot and toot["action"]:
             if toot["action"] == "reblog":
                 self._logger.info("Retooting post %d", toot["id"])
-                return self._mastodon.status_reblog(
-                    toot["id"]
-                )
+                return self._mastodon.status_reblog(toot["id"])
             elif toot["action"] == "new":
                 posted_media = []
                 if "media" in toot and toot["media"]:
@@ -76,7 +70,9 @@ class Publisher:
                             shall_download = False
 
                         else:
-                            self._logger.warning("the Media to post does not have an URL or a PATH")
+                            self._logger.warning(
+                                "the Media to post does not have an URL or a PATH"
+                            )
                             continue
                         posted_result = self._post_media(
                             media_file=media_file,
@@ -88,7 +84,7 @@ class Publisher:
                             posted_media.append(posted_result["id"])
                         else:
                             self._logger.info("Could not post %s", media_file)
-                
+
                 # Let's ensure that it fits according to the params
                 toot["status"] = self.__slice_status_if_longer_than_defined(
                     status=toot["status"]
@@ -103,7 +99,9 @@ class Publisher:
                 published = None
                 while published is None:
                     try:
-                        self._logger.info(f"Tooting new post (retry: {retry}) \"%s\"]", toot["status"])
+                        self._logger.info(
+                            f"Tooting new post (retry: {retry}) \"%s\"]", toot["status"]
+                        )
                         status_post = StatusPost(
                             status=toot["status"],
                             language=toot["language"],
@@ -120,30 +118,38 @@ class Publisher:
                         time.sleep(self.SLEEP_TIME)
                         retry += 1
                         if retry >= self.MAX_RETRIES:
-                            self._logger.error(f"MAX RETRIES of {self.MAX_RETRIES} is reached. Discarding toot.")
+                            self._logger.error(
+                                f"MAX RETRIES of {self.MAX_RETRIES} is reached. " +
+                                "Discarding toot."
+                            )
                             break
-                        
+
         else:
-            self._logger.warn("Toot with published_at %s does not have an action, skipping.", toot["published_at"])
-    
-    def _post_media(self, media_file: str, download_file: bool, description: str, mime_type: str = None) -> dict:
+            self._logger.warn(
+                "Toot with published_at %s does not have an action, skipping.",
+                toot["published_at"]
+            )
+
+    def _post_media(
+        self,
+        media_file: str,
+        download_file: bool,
+        description: str,
+        mime_type: str = None
+    ) -> dict:
         try:
             if download_file is True:
                 downloaded = Media().download_from_url(media_file, self._media_storage)
             else:
-                downloaded = {
-                    "file": media_file,
-                    "mime_type": mime_type
-                }
+                downloaded = {"file": media_file, "mime_type": mime_type}
             return self._mastodon.media_post(
                 downloaded["file"],
                 mime_type=downloaded["mime_type"],
                 description=description,
-                focus=(0,1)
+                focus=(0, 1)
             )
         except Exception as e:
             self._logger.exception(e)
-
 
     def publish_all_from_queue(self) -> None:
         if self._queue.is_empty():
@@ -166,22 +172,21 @@ class Publisher:
             # Maybe we have several posts in a group that we need to post
             #  all together, regardless of the rest of conditions
             if previous_id is not None and "group_id" in queued_post and\
-                self.__next_in_queue_matches_group_id(queued_post["group_id"]):
-                self._logger.debug("Post was published and there are more in this group. Continue")
+               self.__next_in_queue_matches_group_id(queued_post["group_id"]):
+                self._logger.debug(
+                    "Post was published and there are more in this group. Continue"
+                )
                 should_continue = True
             else:
                 # Do we want to publish only the oldest in every iteration?
                 #   This means that the queue gets empty one item every run
                 if self._only_oldest:
-                    self._logger.info(
-                        f"We're meant to publish only the oldest. Finishing."
-                    )
+                    self._logger.info("We're meant to publish only the oldest. Finishing.")
                     should_continue = False
 
         if not self._is_dry_run:
             self._queue.save()
 
-    
     def __next_in_queue_matches_group_id(self, group_id: str) -> bool:
         """
         Posts may have an ID representing a belonging group.
@@ -193,23 +198,22 @@ class Publisher:
         """
         if self._queue.is_empty():
             return False
-        
+
         queued_post = self._queue.first()
-        if queued_post is not None and not "group_id" in queued_post:
+        if queued_post is not None and "group_id" not in queued_post:
             return False
-        
+
         if queued_post["group_id"] == group_id:
             return True
-        
+
         return False
-    
+
     def reload_queue(self) -> int:
         # Previous length
         previous = self._queue.length()
         new = self._queue.load()
 
         return new - previous
-
 
     def _do_status_publish(self, status_post: StatusPost) -> dict:
         """
@@ -307,15 +311,17 @@ class Publisher:
                         "email": config.get("app.user.email"),
                         "password": config.get("app.user.password")
                     }
-                },
-                # Configuration regarding the Status itself
+                },  # Configuration regarding the Status itself
                 "status_params": {
                     # [Integer] Status max length
                     "max_length": self.STATUS_PARAMS["max_length"],
-                    # [String] Status Post content type: "text/plain" | "text/markdown" | "text/html" | "text/bbcode"
-                    # Only vaild for Pleroma and Akkoma instances. Mastodon instances will ignore it
+                    # [String] Status Post content type:
+                    #   "text/plain" | "text/markdown" | "text/html" | "text/bbcode"
+                    # Only vaild for Pleroma and Akkoma instances.
+                    #   Mastodon instances will ignore it
                     "content_type": self.STATUS_PARAMS["content_type"],
-                    # [String] Status Post visibility: "direct" | "private" | "unlisted" | "public"
+                    # [String] Status Post visibility:
+                    #   "direct" | "private" | "unlisted" | "public"
                     "visibility": self.STATUS_PARAMS["visibility"],
                     # [String] Username to mention for "direct" visibility
                     "username_to_dm": self.STATUS_PARAMS["username_to_dm"]

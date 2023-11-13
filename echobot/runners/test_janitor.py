@@ -1,18 +1,21 @@
 from pyxavi.config import Config
-from pyxavi.logger import Logger
 from pyxavi.janitor import Janitor
+from echobot.runners.runner_protocol import RunnerProtocol
 import socket
+import logging
 
 #######
 # This tests that the Janitor Wrapper for errors is working properly
 ##
 
-class TestJanitor:
-    def init(self):
-        self._config = Config()
-        self._logger = Logger(self._config).get_logger()
 
-        return self
+class TestJanitor(RunnerProtocol):
+
+    def __init__(
+        self, config: Config = None, logger: logging = None, params: dict = None
+    ) -> None:
+        self._config = config
+        self._logger = logger
 
     def run(self):
         if self._config.get("janitor.active", False):
@@ -31,6 +34,3 @@ class TestJanitor:
                 self._logger.info("Janitor does not run. Please check.")
         else:
             self._logger.info("Janitor is inactive. Activate it in the config")
-
-if __name__ == '__main__':
-    TestJanitor().init().run()
