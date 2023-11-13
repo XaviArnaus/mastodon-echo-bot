@@ -1,7 +1,6 @@
 from pyxavi.config import Config
 from pyxavi.storage import Storage
 import logging
-from pyxavi.debugger import dd
 
 class Queue:
 
