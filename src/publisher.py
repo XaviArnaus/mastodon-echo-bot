@@ -164,6 +164,7 @@ class Publisher:
 
         if not self._is_dry_run:
             self._queue.save()
+
     
     def reload_queue(self) -> int:
         # Previous length
@@ -171,6 +172,7 @@ class Publisher:
         new = self._queue.load()
 
         return new - previous
+
 
     def _do_status_publish(self, status_post: StatusPost) -> dict:
         """
