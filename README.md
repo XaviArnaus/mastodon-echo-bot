@@ -77,6 +77,8 @@ As this is a bot that connects as an app to a given Mastodon server, it can be d
 ```
 $ git clone git@github.com:XaviArnaus/mastodon-echo-bot.git
 ```
+**⚠️ Attention!** The bot is currently being prepared for *Poetry* support. While it should work as is, we recommend to checkout the last stable version **v0.1.7**, which is then able to set up by the instructions that follow. To continue with the **Unreleased** set of changes AND *Poetry* support, just continue in the `main` branch and keep in mind that now there are several config files in `config/` and the runners are triggered by a CLI (execute `bin/echobot commands` for more info).
+
 4. Discover which is the python3 binary your host is using. This bot uses `python3` to run, and if it's not your case, you'll have to update the reference at the top of the `Makefile` file.
 5. Ensure that your system has `pip`. Otherwise install it. i.e. for Debian:
 ```
