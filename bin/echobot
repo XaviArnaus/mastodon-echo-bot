@@ -8,6 +8,9 @@ if [ $1 = "help" ]; then
 elif [ $1 = "validate_config" ]; then
     # Implemented as a side Python script so that does not get into the loading config flow
     $POETRY_PATH run validate_config
+elif [ $1 = "remove_scheme" ]; then
+    # Implemented as a side Python script so that does not get into the loading config flow
+    $POETRY_PATH run remove_scheme
 else
     # For the rest, just forward to the proper python script
     $POETRY_PATH run main $@
