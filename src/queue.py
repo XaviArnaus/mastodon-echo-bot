@@ -56,9 +56,18 @@ class Queue:
     
     def pop(self) -> dict:
         if not self.is_empty():
-            if not self._config.get("publisher.dry_run"):
-                return self._queue.pop(0)
-            else:
-                return self._queue[0]
+            return self._queue.pop(0)
+        else:
+            return None
+    
+    def first(self) -> dict:
+        if not self.is_empty():
+            return self._queue[0]
+        else:
+            return None
+    
+    def last(self) -> dict:
+        if not self.is_empty():
+            return self._queue[-1]
         else:
             return None
