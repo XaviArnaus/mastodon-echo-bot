@@ -1,6 +1,6 @@
 from pyxavi.config import Config
 from pyxavi.logger import Logger
-from src.parsers.telegram_parser import TelegramParser
+from echobot.parsers.telegram_parser import TelegramParser
 
 #######
 # This is meant to be run just once.

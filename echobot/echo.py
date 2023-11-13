@@ -1,10 +1,10 @@
 from pyxavi.config import Config
 from pyxavi.janitor import Janitor
 from pyxavi.debugger import full_stack
-from .parsers.mastodon_parser import MastodonParser
-from .parsers.feed_parser import FeedParser
-from .parsers.telegram_parser import TelegramParser
-from .publisher import Publisher
+from echobot.parsers.mastodon_parser import MastodonParser
+from echobot.parsers.feed_parser import FeedParser
+from echobot.parsers.telegram_parser import TelegramParser
+from echobot.publisher import Publisher
 from definitions import ROOT_DIR
 import logging
 

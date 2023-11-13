@@ -8,10 +8,10 @@ authors = ["Xavier Arnaus <xavi@arnaus.net>"]
 python = "^3.9"
 "Mastodon.py" = "1.8.0"
 feedparser = "^6.0.10"
-tweepy = "^4.14.0"
 beautifulsoup4 = "^4.12.2"
 pytz = "2023.3.post1"
 telethon = "^1.32.1"
+StrEnum = "^0.4.15"
 pyxavi = "^0.7.7"
 
 [tool.poetry.scripts]

@@ -1,8 +1,8 @@
 from pyxavi.config import Config
 from pyxavi.storage import Storage
-from .keywords_filter import KeywordsFilter
+from echobot.parsers.keywords_filter import KeywordsFilter
 from mastodon import Mastodon
-from ..queue import Queue
+from echobot.queue import Queue
 import logging
 
 class MastodonParser:

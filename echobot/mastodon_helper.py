@@ -1,7 +1,7 @@
 from __future__ import annotations
 from pyxavi.config import Config
 from pyxavi.firefish import Firefish
-from .mastodon_connection_params import MastodonConnectionParams
+from echobot.mastodon_connection_params import MastodonConnectionParams
 from mastodon import Mastodon
 import logging
 import os

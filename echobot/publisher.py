@@ -1,10 +1,10 @@
 from pyxavi.config import Config
 from pyxavi.media import Media
-from .queue import Queue
+from echobot.queue import Queue
 from mastodon import Mastodon
-from .mastodon_helper import MastodonHelper
-from .mastodon_connection_params import MastodonConnectionParams
-from .status_post import StatusPost, StatusPostVisibility, StatusPostContentType
+from echobot.mastodon_helper import MastodonHelper
+from echobot.mastodon_connection_params import MastodonConnectionParams
+from echobot.status_post import StatusPost, StatusPostVisibility, StatusPostContentType
 import logging
 import time
 import os

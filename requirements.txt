@@ -1,6 +1,0 @@
-Mastodon.py==1.8.0
-feedparser
-beautifulsoup4
-pytz
-telethon
-pyxavi==0.7.7

@@ -1,29 +1,67 @@
 PYTHON = python3
-PIP = pip3
+POETRY ?= poetry
+
+ifeq ($(OS), Darwin)
+	OPEN := open
+else
+	OPEN := xdg-open
+endif
 
 .PHONY: init
 init:
-	$(PIP) install -r requirements.txt
+	$(POETRY) install
+
+.PHONY: yapf
+yapf:
+	$(POETRY) run yapf -r --diff .
+
+.PHONY: flake8
+flake8:
+	$(POETRY) run flake8 . \
+		--select=E9,F63,F7,F82 \
+		--show-source \
+		--statistics
+	# Full linter run.
+	$(POETRY) run flake8 --max-line-length=96 --exclude storage .
+
+.PHONY: format
+format:
+	make flake8; make yapf
+
+.PHONY: do-yapf
+do-yapf:
+	$(POETRY) run yapf -i -r .
+
+.PHONY: test
+test:
+	$(POETRY) run pytest
+
+.PHONY: coverage
+coverage:
+	$(POETRY) run pytest --cov-report html:coverage \
+		--cov=src \
+		tests/
+	$(OPEN) coverage/index.html
 
 .PHONY: run
 run:
-	$(PYTHON) runner.py
+	$(POETRY) run python runner.py
 
 .PHONY: create_app
 create_app:
-	$(PYTHON) create_app.py
+	$(POETRY) run python create_app.py
 
 .PHONY: telegram_login
 telegram_login:
-	$(PYTHON) telegram_login.py
+	$(POETRY) run python telegram_login.py
 
 .PHONY: publish_queue
 publish_queue:
-	$(PYTHON) publish_queue.py
+	$(POETRY) run python publish_queue.py
 
 .PHONY: publish_test
 publish_test:
-	$(PYTHON) publish_test.py
+	$(POETRY) run python publish_test.py
 
 .PHONY: validate_config
 validate_config:
@@ -31,8 +69,8 @@ validate_config:
 
 .PHONY: migrate_feed_queue
 migrate_feed_queue:
-	$(PYTHON) scripts/remove_scheme_from_urls_seen.py
+	$(POETRY) run python scripts/remove_scheme_from_urls_seen.py
 
 .PHONY: test_janitor
 test_janitor:
-	$(PYTHON) test_janitor.py
+	$(POETRY) run python test_janitor.py

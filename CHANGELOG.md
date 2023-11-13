@@ -2,9 +2,17 @@
 
 ## [Unreleased](https://github.com/XaviArnaus/mastodon-echo-bot/)
 
+### Changed
+
+- The project now is managed by Poetry ([#10](https://github.com/XaviArnaus/mastodon-echo-bot/pull/10))
+
 ### Removed
 
 - No more Twitter support ([#11](https://github.com/XaviArnaus/mastodon-echo-bot/pull/11))
+
+### Fixed
+
+- Bug that would set a wrong published date ([#10](https://github.com/XaviArnaus/mastodon-echo-bot/pull/10))
 
 ## [v0.1.7](https://github.com/XaviArnaus/mastodon-echo-bot/releases/tag/v0.1.7)
 

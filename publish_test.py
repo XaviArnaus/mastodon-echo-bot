@@ -1,7 +1,7 @@
 from pyxavi.terminal_color import TerminalColor
 from pyxavi.config import Config
 from pyxavi.logger import Logger
-from src.publisher import Publisher
+from echobot.publisher import Publisher
 from definitions import ROOT_DIR
 
 DEFAULT_NAMED_ACCOUNT = ["test", "default"]

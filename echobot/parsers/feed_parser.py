@@ -2,8 +2,8 @@ from pyxavi.config import Config
 from pyxavi.storage import Storage
 from pyxavi.media import Media
 from pyxavi.url import Url
-from ..queue import Queue
-from .keywords_filter import KeywordsFilter
+from echobot.queue import Queue
+from echobot.parsers.keywords_filter import KeywordsFilter
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from dateutil import parser

@@ -1,6 +1,6 @@
 from pyxavi.logger import Logger
 from pyxavi.config import Config
-from publisher import Publisher
+from echobot.publisher import Publisher
 from definitions import ROOT_DIR
 
 class QueuePublisher:

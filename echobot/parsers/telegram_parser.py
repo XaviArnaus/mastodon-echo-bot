@@ -1,6 +1,6 @@
 from pyxavi.config import Config
 from pyxavi.storage import Storage
-from ..queue import Queue
+from echobot.queue import Queue
 from telethon import TelegramClient
 from telethon.types import Message as TelegramMessage
 import logging
@@ -235,7 +235,7 @@ class TelegramParser:
                 text += message.text
             
             if status_date is None:
-                status_date = copy.copy(message.date)
+                status_date = message.date
         
         # Now, we split based on:
         # - The text may be too long
@@ -277,7 +277,7 @@ class TelegramParser:
                     ),
                     "media": media_to_post if media_to_post else None,
                     "language": chat_params["language"] or "en_US",
-                    "published_at": status_date,
+                    "published_at": copy.deepcopy(status_date),
                     "action": "new",
                     "group_id": identification
                 }
