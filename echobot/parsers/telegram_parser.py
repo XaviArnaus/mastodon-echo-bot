@@ -1,5 +1,6 @@
 from pyxavi.config import Config
 from pyxavi.storage import Storage
+from pyxavi.terminal_color import TerminalColor
 from echobot.lib.queue import Queue
 from telethon import TelegramClient
 from telethon.types import Message as TelegramMessage
@@ -14,6 +15,7 @@ from hashlib import sha1
 
 class TelegramParser:
 
+    ACCEPTED_NUM_MONTHS_AGO = 6
     MAX_MEDIA_PER_STATUS = 4
     MAX_STATUS_LENGTH = 400
     DATE_FORMAT = "%Y-%m-%d"
@@ -71,7 +73,7 @@ class TelegramParser:
             chats_params[str(abs(chat["id"]))] = chat
 
         # Get the entities that match with the given IDs.
-        self._logger.info("Get matching entities from the current user's dialogs")
+        self._logger.debug("Get matching entities from the current user's dialogs")
         entities = list(
             filter(
                 bool,
@@ -86,9 +88,9 @@ class TelegramParser:
         logger_string = f"Got {len(entities)} entities."
         if not entities:
             logger_string += " Returning."
-            self._logger.info(logger_string)
+            self._logger.debug(logger_string)
             return
-        self._logger.info(logger_string)
+        self._logger.debug(logger_string)
 
         # Now work with the messages for each entity
         for entity in entities:
@@ -110,7 +112,11 @@ class TelegramParser:
             #   reverse=True -> from oldest to newest, to keep the posting order
             #   offset_id -> avoid retrieving messages that we already know
             #   offset_date -> avoid retrieving messages older than the given datetime
-            self._logger.info(f"Getting messages for entity {entity.title}")
+            self._logger.info(
+                f"{TerminalColor.BLUE}Getting messages for entity" +
+                f" {entity.title}{TerminalColor.END}"
+            )
+            discarded_messages = 0
             for message in self._telegram.iter_messages(
                     entity=entity,
                     reverse=True,
@@ -119,19 +125,22 @@ class TelegramParser:
                     offset_date=offset_date if not ignore_offsets else None):
                 # Theoreticaly we don't need to check again the seen message IDs, but...
                 if message.id in seen_message_ids and not ignore_offsets:
-                    self._logger.info(f"Discarding message: already seen {message.id}")
+                    self._logger.debug(f"Discarding message: already seen {message.id}")
+                    discarded_messages += 1
                     continue
 
                 # We don't want anything older than 6 months
-                if datetime.now().replace(tzinfo=pytz.UTC) - relativedelta(months=6
-                                                                           ) > message.date:
-                    self._logger.info(f"Discarding message: too old {message.date}")
+                if datetime.now().replace(tzinfo=pytz.UTC) - relativedelta(
+                   months=self.ACCEPTED_NUM_MONTHS_AGO) > message.date:
+                    self._logger.debug(f"Discarding message: too old {message.date}")
+                    discarded_messages += 1
                     continue
 
                 # We don´t want any message that is empty and also does not contain any media
                 if (message.text is None or message.text == "") \
                    and (message.file is None):
-                    self._logger.info(f"Discarding message: no text or media {message.date}")
+                    self._logger.debug(f"Discarding message: no text or media {message.date}")
+                    discarded_messages += 1
                     continue
 
                 # If reached until here, we want this message
@@ -140,30 +149,36 @@ class TelegramParser:
                 # Remember this message
                 if message.id not in seen_message_ids:
                     seen_message_ids.append(message.id)
+            
+            if discarded_messages > 0:
+                self._logger.info(f"Discarded {discarded_messages} messages")
 
             # Store the new seen value. In the worst case it is the same as before.
             self._chats_storage.set(f"entity_{entity.id}", seen_message_ids)
             self._chats_storage.write_file()
 
-            self._logger.info(f"Done. Received {len(messages_to_post)} messages to be posted.")
+            if len(messages_to_post) > 0:
+                self._logger.info(f"Received {len(messages_to_post)} messages to publish.")
+            else:
+                self._logger.info(f"No messages to publish")
 
             if len(messages_to_post) > 0:
                 # Now we need to group messages, as images are sent one per message,
                 # if we have an original message with several pictures we'll receive
                 # several messages with one picture with a very short time in between.
-                self._logger.info("Grouping the messages.")
+                self._logger.debug("Grouping the messages.")
                 grouped_messages = self.group_messages(messages=messages_to_post)
-                self._logger.info(f"Done. {len(grouped_messages)} groups of messages.")
+                self._logger.info(f"There are {len(grouped_messages)} groups of messages.")
 
                 # Lastly we loop the grouped messages and send each group to be posted,
                 # which means an async task that downloads all possible meadia, builds and
                 # formats the posts and sends them to the Mastodon API
-                self._logger.info("Starting post preparation process")
+                self._logger.debug("Starting post preparation process")
                 for group_of_messages in grouped_messages:
 
                     # From here on we make it async, because we need the media downloaded
                     # and attached to the message, and the lib functions are async.
-                    self._logger.info(
+                    self._logger.debug(
                         f"Preparing group of {len(group_of_messages)} message(s)."
                     )
                     self.post_group_of_messages(
@@ -172,7 +187,7 @@ class TelegramParser:
                         chat_params=chats_params[str(entity.id)]
                     )
 
-        self._logger.debug("Done")
+        self._logger.debug(f"Finished processing entity {entity.title}")
 
     def group_messages(self, messages: list[TelegramMessage]) -> list[list]:
         groups = []
@@ -224,6 +239,7 @@ class TelegramParser:
         text = ""
         media_stack = []
         status_date = None
+        queued_messages = 0
         for message in messages:
             self._logger.debug(f"Message {message.id} in group")
             # First of all download the possible media
@@ -295,6 +311,12 @@ class TelegramParser:
                     "group_id": identification
                 }
             )
+            queued_messages += 1
+
+        self._logger.info(
+            f"{TerminalColor.GREEN}Added {queued_messages} " + 
+            f"messages into the queue{TerminalColor.END}"
+        )
 
         # Update the toots queue, by adding the new ones at the end of the list
         self._queue.update()

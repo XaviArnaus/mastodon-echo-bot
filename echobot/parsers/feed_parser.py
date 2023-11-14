@@ -2,6 +2,7 @@ from pyxavi.config import Config
 from pyxavi.storage import Storage
 from pyxavi.media import Media
 from pyxavi.url import Url
+from pyxavi.terminal_color import TerminalColor
 from echobot.lib.queue import Queue
 from echobot.parsers.keywords_filter import KeywordsFilter
 from datetime import datetime
@@ -87,15 +88,19 @@ class FeedParser:
 
         # For each user in the config
         for site in sites_params:
+            site_name = site["name"]
+            self._logger.info(
+                f"{TerminalColor.BLUE}Processing site {site_name}{TerminalColor.END}"
+            )
 
             keywords_filter_profile = site["keywords_filter_profile"] \
                 if "keywords_filter_profile" in site and\
                 site["keywords_filter_profile"] else None
 
-            self._logger.info("Getting possible stored data for %s", site["name"])
+            self._logger.debug("Getting possible stored data for %s", site_name)
             site_data = self._feeds_storage.get_hashed(site["url"], None)
 
-            self._logger.info("Parsing site %s", site["name"])
+            self._logger.debug("Parsing site %s", site_name)
             parsed_site = feedparser.parse(site["url"])
 
             if "language_overwrite" in site and "language_default" in site and site[
@@ -110,18 +115,22 @@ class FeedParser:
             if "entries" not in parsed_site or not parsed_site["entries"]:
                 self._logger.warn("No entries in this feed, skipping.")
 
-            self._logger.info("Sorting %d entries ASC", len(parsed_site["entries"]))
+            self._logger.debug("Sorting %d entries ASC", len(parsed_site["entries"]))
             posts = sorted(parsed_site["entries"], key=lambda x: x["published_parsed"])
 
             # Keep track of the post seen.
             urls_seen = site_data["urls_seen"] if site_data and "urls_seen" in site_data else []
 
+            discarded_posts = 0
+            queued_posts = 0
+            total_posts = len(posts)
             for post in posts:
 
                 # Check if this post was already seen
                 post_link = Url.clean(post["link"], {"scheme": True})
                 if post_link in urls_seen:
-                    self._logger.info("Discarding post: already seen %s", post["title"])
+                    self._logger.debug("Discarding post: already seen %s", post["title"])
+                    discarded_posts += 1
                     continue
                 else:
                     urls_seen.append(post_link)
@@ -132,6 +141,7 @@ class FeedParser:
                     post["summary"] = post["description"]
                 elif "summary" not in post and "description" not in post:
                     self._logger.debug("Could not fix not present [summary]. Discarding.")
+                    discarded_posts += 1
                     continue
 
                 # Only in case that we need to filter per
@@ -142,9 +152,10 @@ class FeedParser:
                         post["summary"]):
                     self._logger.info(
                         "Filtering %s per keyword profile '%s', this Feed post is not allowed",
-                        site["name"],
+                        site_name,
                         keywords_filter_profile
                     )
+                    discarded_posts += 1
                     continue
 
                 # Calculate post date
@@ -158,13 +169,15 @@ class FeedParser:
                     self._logger.warn(
                         "Discarding post: no usable published date, can't rely on it"
                     )
+                    discarded_posts += 1
                     continue
 
                 # We don't want anything older than 6 months
                 #   and also older of the last entry we have registered
                 if datetime.now().replace(tzinfo=pytz.UTC) - relativedelta(months=6
                                                                            ) > post_date:
-                    self._logger.info("Discarding post: too old %s", post_date)
+                    self._logger.debug("Discarding post: too old %s", post_date)
+                    discarded_posts += 1
                     continue
 
                 # Prepare the new toot
@@ -175,19 +188,26 @@ class FeedParser:
                 )
                 self._queue.append(
                     {
-                        "status": self._format_toot(post, site["name"], site),
+                        "status": self._format_toot(post, site_name, site),
                         "media": media if media else None,
                         "language": metadata["language"],
                         "published_at": post_date,
                         "action": "new"
                     }
                 )
+                queued_posts += 1
                 self._logger.debug("The post [%s] has been added tot he queue", post["title"])
+            
+            color = TerminalColor.GREEN if queued_posts > 0 else TerminalColor.END
+            self._logger.info(
+                f"{color}Added {queued_posts} posts of {total_posts} to the queue," +
+                f" {discarded_posts} were discarded{TerminalColor.END}"
+            )
 
             # Update our storage with what we found
-            self._logger.debug("Updating gathered site data for %s", site["name"])
+            self._logger.debug("Updating gathered site data for %s", site_name)
             self._feeds_storage.set_hashed(site["url"], {"urls_seen": urls_seen})
-            self._logger.info("Storing data for %s", site["name"])
+            self._logger.debug("Storing data for %s", site_name)
             self._feeds_storage.write_file()
 
         # Update the toots queue, by adding the new ones at the end of the list
