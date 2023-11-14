@@ -4,6 +4,7 @@ from pyxavi.debugger import full_stack
 from echobot.parsers.mastodon_parser import MastodonParser
 from echobot.parsers.feed_parser import FeedParser
 from echobot.parsers.telegram_parser import TelegramParser
+from echobot.parsers.instagram_parser import InstagramParser
 from echobot.lib.publisher import Publisher
 from echobot.runners.runner_protocol import RunnerProtocol
 from definitions import ROOT_DIR
@@ -36,20 +37,25 @@ class Echo(RunnerProtocol):
         Set the behaviour in the config.yaml
         '''
         try:
-            # Parses the defined mastodon accounts
-            # and merges the toots to the already existing queue
-            mastodon_parser = MastodonParser(self._config)
-            mastodon_parser.parse(self._publisher._mastodon)
+            # # Parses the defined mastodon accounts
+            # # and merges the toots to the already existing queue
+            # mastodon_parser = MastodonParser(self._config)
+            # mastodon_parser.parse(self._publisher._mastodon)
 
-            # Parses the defined feeds
-            # and merges the toots to the already existing queue
-            feed_parser = FeedParser(self._config)
-            feed_parser.parse()
+            # # Parses the defined feeds
+            # # and merges the toots to the already existing queue
+            # feed_parser = FeedParser(self._config)
+            # feed_parser.parse()
 
-            # Parses the defined Telegram channels
+            # # Parses the defined Telegram channels
+            # # and merges the toots to the already existing queue
+            # telegram_parser = TelegramParser(self._config)
+            # telegram_parser.parse()
+
+            # Parses the defined Instagram accounts
             # and merges the toots to the already existing queue
-            telegram_parser = TelegramParser(self._config)
-            telegram_parser.parse()
+            instagram_parser = InstagramParser(self._config)
+            instagram_parser.parse()
 
             # Read from the queue the toots to publish
             # and do so according to the config parameters
