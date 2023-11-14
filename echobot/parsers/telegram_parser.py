@@ -42,7 +42,7 @@ class TelegramParser:
         )
 
         self._logger.debug("Setting up Telegram Client, reusing if exists...")
-        client = TelegramClient(session_name, api_id, api_hash).start()
+        client = TelegramClient(session_name, api_id, api_hash, base_logger=self._logger).start()
         self._logger.debug("Done")
 
         return client
