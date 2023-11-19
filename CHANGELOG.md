@@ -5,6 +5,7 @@
 ### Added
 
 - New CLI tool to perform tasks ([#10](https://github.com/XaviArnaus/mastodon-echo-bot/pull/10))
+- Added some colors into the logging to easy the reading ([#12](https://github.com/XaviArnaus/janitor/pull/12))
 
 ### Changed
 

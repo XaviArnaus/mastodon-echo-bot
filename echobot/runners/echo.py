@@ -1,6 +1,7 @@
 from pyxavi.config import Config
 from pyxavi.janitor import Janitor
 from pyxavi.debugger import full_stack
+from pyxavi.terminal_color import TerminalColor
 from echobot.parsers.mastodon_parser import MastodonParser
 from echobot.parsers.feed_parser import FeedParser
 from echobot.parsers.telegram_parser import TelegramParser
@@ -36,18 +37,26 @@ class Echo(RunnerProtocol):
         Set the behaviour in the config.yaml
         '''
         try:
+            self._logger.info(f"{TerminalColor.MAGENTA}Main EchoBot run{TerminalColor.END}")
             # Parses the defined mastodon accounts
             # and merges the toots to the already existing queue
+            self._logger.info(
+                f"{TerminalColor.YELLOW}Parsing Mastodon accounts{TerminalColor.END}"
+            )
             mastodon_parser = MastodonParser(self._config)
             mastodon_parser.parse(self._publisher._mastodon)
 
             # Parses the defined feeds
             # and merges the toots to the already existing queue
+            self._logger.info(f"{TerminalColor.YELLOW}Parsing RSS sites{TerminalColor.END}")
             feed_parser = FeedParser(self._config)
             feed_parser.parse()
 
             # Parses the defined Telegram channels
             # and merges the toots to the already existing queue
+            self._logger.info(
+                f"{TerminalColor.YELLOW}Parsing Telegram accounts{TerminalColor.END}"
+            )
             telegram_parser = TelegramParser(self._config)
             telegram_parser.parse()
 

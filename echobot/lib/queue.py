@@ -23,17 +23,17 @@ class Queue:
         self._queue.append(item)
 
     def sort_by_date(self) -> None:
-        self._logger.info("Sorting queue by date ASC")
+        self._logger.debug("Sorting queue by date ASC")
         self._queue = sorted(self._queue, key=lambda x: x["published_at"])
 
     def deduplicate(self) -> None:
-        self._logger.info("Deduplicating queue")
+        self._logger.debug("Deduplicating queue")
         new_queue = []
         [new_queue.append(x) for x in self._queue if x not in new_queue]
         self._queue = new_queue
 
     def save(self) -> None:
-        self._logger.info("Saving the queue")
+        self._logger.debug("Saving the queue")
         self._toots_queue.set("queue", self._queue)
         self._toots_queue.write_file()
 

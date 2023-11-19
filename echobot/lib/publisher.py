@@ -1,5 +1,6 @@
 from pyxavi.config import Config
 from pyxavi.media import Media
+from pyxavi.terminal_color import TerminalColor
 from echobot.lib.queue import Queue
 from mastodon import Mastodon
 from echobot.lib.mastodon_helper import MastodonHelper
@@ -60,7 +61,10 @@ class Publisher:
             elif toot["action"] == "new":
                 posted_media = []
                 if "media" in toot and toot["media"]:
-                    self._logger.info("Posting first %s media items", len(toot["media"]))
+                    self._logger.info(
+                        f"{TerminalColor.CYAN}Posting first %s media items{TerminalColor.END}",
+                        len(toot["media"])
+                    )
                     for item in toot["media"]:
                         shall_download = True
                         if "url" in item and item["url"] is not None:
@@ -71,7 +75,8 @@ class Publisher:
 
                         else:
                             self._logger.warning(
-                                "the Media to post does not have an URL or a PATH"
+                                f"{TerminalColor.RED}the Media to post does " +
+                                f"not have an URL or a PATH{TerminalColor.END}"
                             )
                             continue
                         posted_result = self._post_media(
@@ -83,7 +88,10 @@ class Publisher:
                         if posted_result:
                             posted_media.append(posted_result["id"])
                         else:
-                            self._logger.info("Could not post %s", media_file)
+                            self._logger.info(
+                                f"{TerminalColor.RED}Could not post %s{TerminalColor.END}",
+                                media_file
+                            )
 
                 # Let's ensure that it fits according to the params
                 toot["status"] = self.__slice_status_if_longer_than_defined(
@@ -100,7 +108,9 @@ class Publisher:
                 while published is None:
                     try:
                         self._logger.info(
-                            f"Tooting new post (retry: {retry}) \"%s\"]", toot["status"]
+                            f"{TerminalColor.CYAN}Tooting new post (retry {retry})" +
+                            f" \"%s\"]{TerminalColor.END}",
+                            toot["status"]
                         )
                         status_post = StatusPost(
                             status=toot["status"],
@@ -153,7 +163,9 @@ class Publisher:
 
     def publish_all_from_queue(self) -> None:
         if self._queue.is_empty():
-            self._logger.info("The queue is empty, skipping.")
+            self._logger.info(
+                f"{TerminalColor.CYAN}The queue is empty, skipping.{TerminalColor.END}"
+            )
             return
 
         should_continue = True
@@ -181,7 +193,10 @@ class Publisher:
                 # Do we want to publish only the oldest in every iteration?
                 #   This means that the queue gets empty one item every run
                 if self._only_oldest:
-                    self._logger.info("We're meant to publish only the oldest. Finishing.")
+                    self._logger.info(
+                        f"{TerminalColor.CYAN}We're meant to publish only the oldest." +
+                        f" Finishing.{TerminalColor.END}"
+                    )
                     should_continue = False
 
         if not self._is_dry_run:
