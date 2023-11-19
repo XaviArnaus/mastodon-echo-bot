@@ -63,9 +63,7 @@ class MastodonParser:
                 accounts = mastodon.account_search(account_user)
 
                 if not accounts:
-                    self._logger.warn(
-                        "No account found for %s, skipping", account_user
-                    )
+                    self._logger.warn("No account found for %s, skipping", account_user)
                     continue
                 else:
                     account_id = accounts[0]["id"]
@@ -80,14 +78,11 @@ class MastodonParser:
                         for following in bot_is_following:
                             if following["id"] == account_id:
                                 self._logger.debug(
-                                    "The bot is already following %s, skipping",
-                                    account_user
+                                    "The bot is already following %s, skipping", account_user
                                 )
                                 found = True
                         if not found:
-                            self._logger.debug(
-                                "Registering the following to %s", account_user
-                            )
+                            self._logger.debug("Registering the following to %s", account_user)
                             mastodon.account_follow(account_id, reblogs=True)
                             # The federation does not get updated instantly.
                             # Toots will appear after some time
@@ -156,7 +151,7 @@ class MastodonParser:
                     # queue to publish if the config say so
                     queued_toots += 1
                     self._queue.append(toot)
-            
+
             # Log minimal stats
             if queued_toots > 0:
                 self._logger.info(

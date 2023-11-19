@@ -109,7 +109,8 @@ class Publisher:
                     try:
                         self._logger.info(
                             f"{TerminalColor.CYAN}Tooting new post (retry {retry})" +
-                            f" \"%s\"]{TerminalColor.END}", toot["status"]
+                            f" \"%s\"]{TerminalColor.END}",
+                            toot["status"]
                         )
                         status_post = StatusPost(
                             status=toot["status"],

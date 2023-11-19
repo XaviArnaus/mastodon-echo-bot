@@ -37,9 +37,7 @@ class Echo(RunnerProtocol):
         Set the behaviour in the config.yaml
         '''
         try:
-            self._logger.info(
-                f"{TerminalColor.MAGENTA}Main EchoBot run{TerminalColor.END}"
-            )
+            self._logger.info(f"{TerminalColor.MAGENTA}Main EchoBot run{TerminalColor.END}")
             # Parses the defined mastodon accounts
             # and merges the toots to the already existing queue
             self._logger.info(
@@ -50,9 +48,7 @@ class Echo(RunnerProtocol):
 
             # Parses the defined feeds
             # and merges the toots to the already existing queue
-            self._logger.info(
-                f"{TerminalColor.YELLOW}Parsing RSS sites{TerminalColor.END}"
-            )
+            self._logger.info(f"{TerminalColor.YELLOW}Parsing RSS sites{TerminalColor.END}")
             feed_parser = FeedParser(self._config)
             feed_parser.parse()
 

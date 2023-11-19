@@ -197,7 +197,7 @@ class FeedParser:
                 )
                 queued_posts += 1
                 self._logger.debug("The post [%s] has been added tot he queue", post["title"])
-            
+
             color = TerminalColor.GREEN if queued_posts > 0 else TerminalColor.END
             self._logger.info(
                 f"{color}Added {queued_posts} posts of {total_posts} to the queue," +

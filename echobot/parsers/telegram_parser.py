@@ -42,7 +42,9 @@ class TelegramParser:
         )
 
         self._logger.debug("Setting up Telegram Client, reusing if exists...")
-        client = TelegramClient(session_name, api_id, api_hash, base_logger=self._logger).start()
+        client = TelegramClient(
+            session_name, api_id, api_hash, base_logger=self._logger
+        ).start()
         self._logger.debug("Done")
 
         return client
@@ -131,7 +133,7 @@ class TelegramParser:
 
                 # We don't want anything older than 6 months
                 if datetime.now().replace(tzinfo=pytz.UTC) - relativedelta(
-                   months=self.ACCEPTED_NUM_MONTHS_AGO) > message.date:
+                        months=self.ACCEPTED_NUM_MONTHS_AGO) > message.date:
                     self._logger.debug(f"Discarding message: too old {message.date}")
                     discarded_messages += 1
                     continue
@@ -149,7 +151,7 @@ class TelegramParser:
                 # Remember this message
                 if message.id not in seen_message_ids:
                     seen_message_ids.append(message.id)
-            
+
             if discarded_messages > 0:
                 self._logger.info(f"Discarded {discarded_messages} messages")
 
@@ -160,7 +162,7 @@ class TelegramParser:
             if len(messages_to_post) > 0:
                 self._logger.info(f"Received {len(messages_to_post)} messages to publish.")
             else:
-                self._logger.info(f"No messages to publish")
+                self._logger.info("No messages to publish")
 
             if len(messages_to_post) > 0:
                 # Now we need to group messages, as images are sent one per message,
@@ -314,7 +316,7 @@ class TelegramParser:
             queued_messages += 1
 
         self._logger.info(
-            f"{TerminalColor.GREEN}Added {queued_messages} " + 
+            f"{TerminalColor.GREEN}Added {queued_messages} " +
             f"messages into the queue{TerminalColor.END}"
         )
 
