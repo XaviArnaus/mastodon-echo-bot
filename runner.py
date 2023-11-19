@@ -220,7 +220,7 @@ def load_logger(config: Config, loglevel: int = None) -> logging:
         # Lets first merge the config with the new value
         logger_config = config.get("logger")
         logger_config["loglevel"] = loglevel
-        logger_config["to_stdout"] = True
+        logger_config["stdout"]["active"] = True
         config.merge_from_dict(parameters={"logger": logger_config})
 
     return Logger(config=config, base_path=ROOT_DIR).get_logger()
