@@ -2,12 +2,10 @@ from pyxavi.config import Config
 from pyxavi.media import Media
 from pyxavi.terminal_color import TerminalColor
 from echobot.lib.queue import Queue
-from mastodon import Mastodon
 from pyxavi.mastodon_helper import MastodonHelper, MastodonConnectionParams,\
     StatusPost, StatusPostVisibility, StatusPostContentType
 import logging
 import time
-import os
 
 
 class Publisher:
