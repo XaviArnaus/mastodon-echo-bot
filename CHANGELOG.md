@@ -12,6 +12,7 @@
 - The project now is managed by Poetry ([#10](https://github.com/XaviArnaus/mastodon-echo-bot/pull/10))
 - Internal code structure heavily changed ([#10](https://github.com/XaviArnaus/mastodon-echo-bot/pull/10))
 - Config structure changed from single config file to multiple config files ([#10](https://github.com/XaviArnaus/mastodon-echo-bot/pull/10))
+- Include the change from `pyxavi` where the `Config` instance for the `Logger` module has changed ([#13](https://github.com/XaviArnaus/mastodon-echo-bot/pull/13))
 
 ### Removed
 
