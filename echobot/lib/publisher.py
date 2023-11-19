@@ -3,10 +3,8 @@ from pyxavi.media import Media
 from pyxavi.terminal_color import TerminalColor
 from echobot.lib.queue import Queue
 from mastodon import Mastodon
-from echobot.lib.mastodon_helper import MastodonHelper
-from echobot.objects.mastodon_connection_params import MastodonConnectionParams
-from echobot.objects.status_post import StatusPost,\
-    StatusPostVisibility, StatusPostContentType
+from pyxavi.mastodon_helper import MastodonHelper, MastodonConnectionParams,\
+    StatusPost, StatusPostVisibility, StatusPostContentType
 import logging
 import time
 import os
@@ -41,11 +39,12 @@ class Publisher:
         self._instance_type = MastodonHelper.valid_or_raise(
             self._connection_params.instance_type
         )
-        self._base_path = base_path
         self._is_dry_run = config.get("publisher.dry_run", False)
         self._media_storage = self._config.get("publisher.media_storage")
 
-        self._mastodon = self._get_mastodon_instance()
+        self._mastodon = MastodonHelper.get_instance(
+            connection_params=self._connection_params, logger=self._logger, base_path=base_path
+        )
         self._only_oldest = only_oldest if only_oldest is not None\
             else config.get("publisher.only_oldest_post_every_iteration", False)
 
@@ -293,25 +292,6 @@ class Publisher:
             status = status[:max_length - 3] + "..."
 
         return status
-
-    def _get_mastodon_instance(self) -> Mastodon:
-        # If the client_file does not exist we need to trigger the
-        #   create app action.
-        client_file = os.path.join(
-            self._base_path, self._connection_params.credentials.client_file
-        )
-        if not os.path.exists(client_file):
-            MastodonHelper.create_app(
-                instance_type=self._connection_params.instance_type,
-                client_name=self._connection_params.app_name,
-                api_base_url=self._connection_params.api_base_url,
-                to_file=client_file
-            )
-
-        # Instantiate and return
-        return MastodonHelper.get_instance(
-            config=self._config, connection_params=self._connection_params
-        )
 
     def _get_connection_params(self, config: Config) -> MastodonConnectionParams:
         return MastodonConnectionParams.from_dict(
