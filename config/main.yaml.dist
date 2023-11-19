@@ -23,14 +23,33 @@ logger:
   loglevel: 10
   # [String] Name of the logger
   name: "mastodon_echo_bot"
-  # [Bool] Dump the log into a file
-  to_file: True
-  # [String] Path and filename of the log file
-  filename: "log/mastodon_echo_bot.log"
-  # [Bool] Dump the log into a stdout
-  to_stdout: True
   # [String] Format of the log
   format: "[%(asctime)s] %(levelname)-8s %(name)-12s %(message)s"
+  # File related parameters
+  file:
+    # [Bool] Dump the log into a file
+    active: True
+    # [String] Path and filename of the log file
+    filename: "log/mastodon_echo_bot.log"
+    # [String] The encoding of the log file
+    encoding: "UTF-8"
+    # [Bool] Do we want to rotate the log files? Only will apply if we log to files
+    rotate:
+        active: False
+        # [String] When do we rotate. Accepts "S" | "M" | "H" | "D" | "W0"-"W6" | "midnight"
+        #   See https://docs.python.org/3/library/logging.handlers.html#timedrotatingfilehandler
+        when: "midnight"
+        # [Int] How many rotated old files to keep before it starts to delete the older
+        backup_count: 10
+        # [Bool] Stick to UTC timings when triggering the rotation
+        utc: True
+        # [String] in format "%H:%M:%S". When to trigger THE VERY FIRST rotation.
+        #   Subsequent will attend to when_rotate
+        at_time: "1:00:00"
+  # Standard output related parameters
+  stdout:
+  # [Bool] Dump the log into a stdout
+      active: True
 
 # Janitor config
 janitor:
