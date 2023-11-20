@@ -521,8 +521,8 @@ requests = "^2.28.0"
 [package.source]
 type = "git"
 url = "https://github.com/XaviArnaus/pyxavi.git"
-reference = "main"
-resolved_reference = "97810057ad455c7e4d11f3bb09ebc2134fb1b263"
+reference = "feature/bring=mastodon-publisher-and-named-account-object"
+resolved_reference = "0da9fa0f7de0b302e38f0177a994f59d8a6f04c3"
 
 [[package]]
 name = "pyyaml"
@@ -747,4 +747,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "07b403c980b082f7ac610ed95cc6f0f0ca6ada44203394b22e144bfdff7e0c99"
+content-hash = "862681da10c10e9a62bc64b71d35c63beab1c50bbbb0aed6fb61e2fe8c9fbe2c"

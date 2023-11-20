@@ -11,6 +11,11 @@ endif
 init:
 	$(POETRY) install
 
+.PHONY: update
+update:
+	$(POETRY) lock
+	$(POETRY) install
+
 .PHONY: yapf
 yapf:
 	$(POETRY) run yapf -r --diff .
@@ -32,9 +37,9 @@ format:
 do-yapf:
 	$(POETRY) run yapf -i -r .
 
-.PHONY: test
-test:
-	$(POETRY) run pytest
+# .PHONY: test
+# test:
+# 	$(POETRY) run pytest
 
 .PHONY: coverage
 coverage:
