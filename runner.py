@@ -11,7 +11,6 @@ from string import Template
 import glob
 import logging
 
-from echobot.runners.create_app import CreateApp
 from echobot.runners.echo import Echo
 from echobot.runners.publish_queue import QueuePublisher
 from echobot.runners.publish_test import PublishTest
