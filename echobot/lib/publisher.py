@@ -26,11 +26,9 @@ class Publisher(MastodonPublisher):
     def __init__(
         self, config: Config, base_path: str = None, only_oldest: bool = False
     ) -> None:
-        
+
         super().__init__(
-            config=config,
-            logger=Logger(config=config).get_logger(),
-            base_path=base_path
+            config=config, logger=Logger(config=config).get_logger(), base_path=base_path
         )
 
         self._queue = Queue(config)
@@ -44,7 +42,8 @@ class Publisher(MastodonPublisher):
                 self._logger.info("Retooting post %d", toot["id"])
                 return self._mastodon.status_reblog(toot["id"])
             elif toot["action"] == "new":
-                self._logger.debug("New text to publish")
+                self._logger.debug("The Publisher._execute_action has a new post")
+
                 posted_media = []
                 if "media" in toot and toot["media"]:
                     posted_media = self.publish_media(media=toot["media"])
@@ -76,6 +75,7 @@ class Publisher(MastodonPublisher):
 
         should_continue = True
         previous_id = None
+        self._logger.debug("Queue is not empty, publishing from it")
         while should_continue and not self._queue.is_empty():
             # Get the first element from the queue
             queued_post = self._queue.pop()
@@ -135,7 +135,7 @@ class Publisher(MastodonPublisher):
         new = self._queue.load()
 
         return new - previous
-    
+
     def load_connection_params(self, named_account=None) -> None:
         # While we don't migrate this config section to a proper
         #   mastodon.named_account config parameterset,
