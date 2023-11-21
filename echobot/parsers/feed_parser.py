@@ -3,7 +3,7 @@ from pyxavi.storage import Storage
 from pyxavi.media import Media
 from pyxavi.url import Url
 from pyxavi.terminal_color import TerminalColor
-from echobot.lib.queue import Queue
+from pyxavi.item_queue import Queue, SimpleQueueItem
 from echobot.parsers.keywords_filter import KeywordsFilter
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
@@ -32,7 +32,7 @@ class FeedParser:
         self._feeds_storage = Storage(
             self._config.get("feed_parser.storage_file", self.DEFAULT_STORAGE_FILE)
         )
-        self._queue = Queue(config)
+        self._queue = Queue(config=config)
         self._media = Media()
         self._keywords_filter = KeywordsFilter(config)
 
@@ -187,13 +187,13 @@ class FeedParser:
                     "The post [%s] has %d media elements", post["title"], len(media)
                 )
                 self._queue.append(
-                    {
+                    SimpleQueueItem({
                         "status": self._format_toot(post, site_name, site),
                         "media": media if media else None,
                         "language": metadata["language"],
                         "published_at": post_date,
                         "action": "new"
-                    }
+                    })
                 )
                 queued_posts += 1
                 self._logger.debug("The post [%s] has been added tot he queue", post["title"])
@@ -211,4 +211,6 @@ class FeedParser:
             self._feeds_storage.write_file()
 
         # Update the toots queue, by adding the new ones at the end of the list
-        self._queue.update()
+        self._queue.sort(param="published_at")
+        self._queue.deduplicate(param="status")
+        self._queue.save()

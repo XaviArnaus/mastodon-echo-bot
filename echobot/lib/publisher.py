@@ -2,7 +2,7 @@ from pyxavi.config import Config
 from pyxavi.logger import Logger
 from pyxavi.terminal_color import TerminalColor
 from pyxavi.mastodon_publisher import MastodonPublisher
-from echobot.lib.queue import Queue
+from pyxavi.item_queue import Queue
 from pyxavi.mastodon_helper import MastodonConnectionParams,\
     StatusPost, StatusPostVisibility, StatusPostContentType
 
@@ -31,7 +31,7 @@ class Publisher(MastodonPublisher):
             config=config, logger=Logger(config=config).get_logger(), base_path=base_path
         )
 
-        self._queue = Queue(config)
+        self._queue = Queue(config=config, base_path=base_path)
         self._only_oldest = only_oldest if only_oldest is not None\
             else config.get("publisher.only_oldest_post_every_iteration", False)
 
@@ -78,7 +78,7 @@ class Publisher(MastodonPublisher):
         self._logger.debug("Queue is not empty, publishing from it")
         while should_continue and not self._queue.is_empty():
             # Get the first element from the queue
-            queued_post = self._queue.pop()
+            queued_post = self._queue.pop().to_dict()
             # Publish it
             result = self._execute_action(queued_post, previous_id=previous_id)
             # Let's capture the ID in case we want to do a thread
@@ -120,7 +120,7 @@ class Publisher(MastodonPublisher):
         if self._queue.is_empty():
             return False
 
-        queued_post = self._queue.first()
+        queued_post = self._queue.first().to_dict()
         if queued_post is not None and "group_id" not in queued_post:
             return False
 
