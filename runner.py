@@ -47,7 +47,6 @@ SUBCOMMAND_MAP = {
         "run": (Echo, "Runs the application"),
     },
     "mastodon": {
-        "create_app": (CreateApp, "Creates the Mastodon-like API application session file"),
         "test": (
             PublishTest,
             "Publishes a test message to the Mastodon-like API to ensure that all is set up ok."
