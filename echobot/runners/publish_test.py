@@ -36,9 +36,12 @@ class PublishTest(RunnerProtocol):
                     "media": None,
                     "published_at": "2023-09-29 10:10:53+00:00",
                     "status": "This is a test",
-                    "language": "en"
+                    "language": "ca_ES"
                 }
             )
+            # Publisher(
+            #     config=self._config, base_path=ROOT_DIR
+            # ).publish_text("This is a test")
         except Exception as e:
             self._logger.exception(e)
             print(e)
