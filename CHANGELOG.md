@@ -19,6 +19,7 @@
 ### Removed
 
 - No more Twitter support ([#11](https://github.com/XaviArnaus/mastodon-echo-bot/pull/11))
+- No more CreateApp runner ([#16](https://github.com/XaviArnaus/mastodon-echo-bot/pull/16))
 
 ### Fixed
 

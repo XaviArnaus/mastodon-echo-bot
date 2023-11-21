@@ -11,7 +11,6 @@ from string import Template
 import glob
 import logging
 
-from echobot.runners.create_app import CreateApp
 from echobot.runners.echo import Echo
 from echobot.runners.publish_queue import QueuePublisher
 from echobot.runners.publish_test import PublishTest
@@ -47,7 +46,6 @@ SUBCOMMAND_MAP = {
         "run": (Echo, "Runs the application"),
     },
     "mastodon": {
-        "create_app": (CreateApp, "Creates the Mastodon-like API application session file"),
         "test": (
             PublishTest,
             "Publishes a test message to the Mastodon-like API to ensure that all is set up ok."
