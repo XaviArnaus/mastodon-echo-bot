@@ -281,8 +281,8 @@ requests = "^2.28.0"
 [package.source]
 type = "git"
 url = "https://github.com/XaviArnaus/pyxavi.git"
-reference = "feature/bring=mastodon-publisher-and-named-account-object"
-resolved_reference = "5c74ccf5b6670fcccd2d7ca84eaadff7d1240917"
+reference = "main"
+resolved_reference = "0b4d5095d66d93f0b38fd2bd6447d896a6c0a0e6"
 
 [[package]]
 name = "pyyaml"
@@ -413,7 +413,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "862681da10c10e9a62bc64b71d35c63beab1c50bbbb0aed6fb61e2fe8c9fbe2c"
+content-hash = "07b403c980b082f7ac610ed95cc6f0f0ca6ada44203394b22e144bfdff7e0c99"
 
 [metadata.files]
 beautifulsoup4 = [
