@@ -297,21 +297,23 @@ class TelegramParser:
             text = text[self.MAX_STATUS_LENGTH:]
 
             self._queue.append(
-                SimpleQueueItem({
-                    "status": self._format_status(
-                        text=text_to_post,
-                        current_index=status_num,
-                        total=num_of_statuses,
-                        entity=entity,
-                        show_name=chat_params["show_name"]
-                        if "show_name" in chat_params and chat_params else False
-                    ),
-                    "media": media_to_post if media_to_post else None,
-                    "language": chat_params["language"] or "en_US",
-                    "published_at": copy.deepcopy(status_date),
-                    "action": "new",
-                    "group_id": identification
-                })
+                SimpleQueueItem(
+                    {
+                        "status": self._format_status(
+                            text=text_to_post,
+                            current_index=status_num,
+                            total=num_of_statuses,
+                            entity=entity,
+                            show_name=chat_params["show_name"]
+                            if "show_name" in chat_params and chat_params else False
+                        ),
+                        "media": media_to_post if media_to_post else None,
+                        "language": chat_params["language"] or "en_US",
+                        "published_at": copy.deepcopy(status_date),
+                        "action": "new",
+                        "group_id": identification
+                    }
+                )
             )
             queued_messages += 1
 

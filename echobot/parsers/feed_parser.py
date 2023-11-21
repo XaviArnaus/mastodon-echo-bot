@@ -187,13 +187,15 @@ class FeedParser:
                     "The post [%s] has %d media elements", post["title"], len(media)
                 )
                 self._queue.append(
-                    SimpleQueueItem({
-                        "status": self._format_toot(post, site_name, site),
-                        "media": media if media else None,
-                        "language": metadata["language"],
-                        "published_at": post_date,
-                        "action": "new"
-                    })
+                    SimpleQueueItem(
+                        {
+                            "status": self._format_toot(post, site_name, site),
+                            "media": media if media else None,
+                            "language": metadata["language"],
+                            "published_at": post_date,
+                            "action": "new"
+                        }
+                    )
                 )
                 queued_posts += 1
                 self._logger.debug("The post [%s] has been added tot he queue", post["title"])
