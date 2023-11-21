@@ -1,7 +1,7 @@
 from pyxavi.config import Config
 from pyxavi.storage import Storage
 from pyxavi.terminal_color import TerminalColor
-from echobot.lib.queue import Queue
+from pyxavi.item_queue import Queue, SimpleQueueItem
 from telethon import TelegramClient
 from telethon.types import Message as TelegramMessage
 import logging
@@ -29,7 +29,7 @@ class TelegramParser:
         self._chats_storage = Storage(
             self._config.get("telegram_parser.storage_file", self.DEFAULT_TELEGRAM_FILE)
         )
-        self._queue = Queue(config)
+        self._queue = Queue(config=config)
 
     def telegram_ok(self) -> None:
         self._telegram.get_me()
@@ -297,7 +297,7 @@ class TelegramParser:
             text = text[self.MAX_STATUS_LENGTH:]
 
             self._queue.append(
-                {
+                SimpleQueueItem({
                     "status": self._format_status(
                         text=text_to_post,
                         current_index=status_num,
@@ -311,7 +311,7 @@ class TelegramParser:
                     "published_at": copy.deepcopy(status_date),
                     "action": "new",
                     "group_id": identification
-                }
+                })
             )
             queued_messages += 1
 
@@ -321,7 +321,9 @@ class TelegramParser:
         )
 
         # Update the toots queue, by adding the new ones at the end of the list
-        self._queue.update()
+        self._queue.sort(param="published_at")
+        self._queue.deduplicate(param="status")
+        self._queue.save()
 
     def _format_status(
         self, text: str, current_index: int, total: int, entity, show_name: bool
