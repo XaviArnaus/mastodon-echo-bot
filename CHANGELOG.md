@@ -15,6 +15,7 @@
 - Include the change from `pyxavi` where the `Config` instance for the `Logger` module has changed ([#13](https://github.com/XaviArnaus/mastodon-echo-bot/pull/13))
 - Now the Mastodon related classes and objects are abstracted into `pyxavi` ([#14](https://github.com/XaviArnaus/mastodon-echo-bot/pull/14))
 - Now the Publish class is abstracted into `pyxavi` ([#15](https://github.com/XaviArnaus/mastodon-echo-bot/pull/15))
+- Now the Queue class is abstracted into `pyxavi` ([#17](https://github.com/XaviArnaus/mastodon-echo-bot/pull/17))
 
 ### Removed
 
