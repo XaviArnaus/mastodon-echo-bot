@@ -28,12 +28,10 @@ class Publisher(MastodonPublisher):
     def __init__(
         self, config: Config, base_path: str = None, only_oldest: bool = False
     ) -> None:
-        
+
         logger = Logger(config=config).get_logger()
 
-        super().__init__(
-            config=config, logger=logger, base_path=base_path
-        )
+        super().__init__(config=config, logger=logger, base_path=base_path)
 
         queue_storage_file = config.get("toots_queue_storage.file", self.DEFAULT_QUEUE_FILE)
         if base_path is not None:
