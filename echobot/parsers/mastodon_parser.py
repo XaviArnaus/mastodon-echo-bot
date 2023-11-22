@@ -3,7 +3,7 @@ from pyxavi.storage import Storage
 from pyxavi.terminal_color import TerminalColor
 from echobot.parsers.keywords_filter import KeywordsFilter
 from mastodon import Mastodon
-from echobot.lib.queue import Queue
+from pyxavi.queue_stack import Queue, SimpleQueueItem
 import logging
 
 
@@ -12,6 +12,7 @@ class MastodonParser:
     Parses the toots from the registered accounts and feed the queue list of toots to publish.
     '''
     DEFAULT_STORAGE_FILE = "storage/accounts.yaml"
+    DEFAULT_QUEUE_FILE = "storage/queue.yaml"
 
     def __init__(self, config: Config) -> None:
         self._config = config
@@ -19,7 +20,10 @@ class MastodonParser:
         self._accounts_storage = Storage(
             config.get("mastodon_parser.storage_file", self.DEFAULT_STORAGE_FILE)
         )
-        self._queue = Queue(config)
+        self._queue = Queue(
+            logger=self._logger,
+            storage_file=config.get("toots_queue_storage.file", self.DEFAULT_QUEUE_FILE)
+        )
         self._keywords_filter = KeywordsFilter(config)
 
     def parse(self, mastodon: Mastodon) -> None:
@@ -143,14 +147,14 @@ class MastodonParser:
                         and account_params["toots"]:
                     # queue to publish if the config say so
                     queued_toots += 1
-                    self._queue.append(toot)
+                    self._queue.append(SimpleQueueItem(toot))
 
                 # Is a retoot?
                 if received_toot.reblog \
                    and account_params["retoots"]:
                     # queue to publish if the config say so
                     queued_toots += 1
-                    self._queue.append(toot)
+                    self._queue.append(SimpleQueueItem(toot))
 
             # Log minimal stats
             if queued_toots > 0:
@@ -172,4 +176,6 @@ class MastodonParser:
             self._accounts_storage.write_file()
 
         # Update the toots queue, by adding the new ones at the end of the list
-        self._queue.update()
+        self._queue.sort(param="published_at")
+        self._queue.deduplicate(param="id")
+        self._queue.save()

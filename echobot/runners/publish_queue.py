@@ -1,4 +1,5 @@
 from pyxavi.config import Config
+from pyxavi.terminal_color import TerminalColor
 from echobot.lib.publisher import Publisher
 from echobot.runners.runner_protocol import RunnerProtocol
 from definitions import ROOT_DIR
@@ -22,7 +23,9 @@ class QueuePublisher(RunnerProtocol):
         Just publishes the queue
         '''
         try:
-            self._logger.info("Publishing the whole queue")
+            self._logger.info(
+                f"{TerminalColor.MAGENTA}Publishing whole queue{TerminalColor.END}"
+            )
             self._publisher.publish_all_from_queue()
         except Exception as e:
             self._logger.exception(e)

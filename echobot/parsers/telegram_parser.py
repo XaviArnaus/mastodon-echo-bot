@@ -1,7 +1,7 @@
 from pyxavi.config import Config
 from pyxavi.storage import Storage
 from pyxavi.terminal_color import TerminalColor
-from echobot.lib.queue import Queue
+from pyxavi.queue_stack import Queue, SimpleQueueItem
 from telethon import TelegramClient
 from telethon.types import Message as TelegramMessage
 import logging
@@ -20,6 +20,7 @@ class TelegramParser:
     MAX_STATUS_LENGTH = 400
     DATE_FORMAT = "%Y-%m-%d"
     DEFAULT_TELEGRAM_FILE = "storage/telegram.yaml"
+    DEFAULT_QUEUE_FILE = "storage/queue.yaml"
 
     _telegram: TelegramClient
 
@@ -29,7 +30,10 @@ class TelegramParser:
         self._chats_storage = Storage(
             self._config.get("telegram_parser.storage_file", self.DEFAULT_TELEGRAM_FILE)
         )
-        self._queue = Queue(config)
+        self._queue = Queue(
+            logger=self._logger,
+            storage_file=config.get("toots_queue_storage.file", self.DEFAULT_QUEUE_FILE)
+        )
 
     def telegram_ok(self) -> None:
         self._telegram.get_me()
@@ -297,21 +301,23 @@ class TelegramParser:
             text = text[self.MAX_STATUS_LENGTH:]
 
             self._queue.append(
-                {
-                    "status": self._format_status(
-                        text=text_to_post,
-                        current_index=status_num,
-                        total=num_of_statuses,
-                        entity=entity,
-                        show_name=chat_params["show_name"]
-                        if "show_name" in chat_params and chat_params else False
-                    ),
-                    "media": media_to_post if media_to_post else None,
-                    "language": chat_params["language"] or "en_US",
-                    "published_at": copy.deepcopy(status_date),
-                    "action": "new",
-                    "group_id": identification
-                }
+                SimpleQueueItem(
+                    {
+                        "status": self._format_status(
+                            text=text_to_post,
+                            current_index=status_num,
+                            total=num_of_statuses,
+                            entity=entity,
+                            show_name=chat_params["show_name"]
+                            if "show_name" in chat_params and chat_params else False
+                        ),
+                        "media": media_to_post if media_to_post else None,
+                        "language": chat_params["language"] or "en_US",
+                        "published_at": copy.deepcopy(status_date),
+                        "action": "new",
+                        "group_id": identification
+                    }
+                )
             )
             queued_messages += 1
 
@@ -321,7 +327,9 @@ class TelegramParser:
         )
 
         # Update the toots queue, by adding the new ones at the end of the list
-        self._queue.update()
+        self._queue.sort(param="published_at")
+        self._queue.deduplicate(param="status")
+        self._queue.save()
 
     def _format_status(
         self, text: str, current_index: int, total: int, entity, show_name: bool
