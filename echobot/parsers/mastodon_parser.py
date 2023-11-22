@@ -3,7 +3,7 @@ from pyxavi.storage import Storage
 from pyxavi.terminal_color import TerminalColor
 from echobot.parsers.keywords_filter import KeywordsFilter
 from mastodon import Mastodon
-from pyxavi.item_queue import Queue, SimpleQueueItem
+from pyxavi.queue_stack import Queue, SimpleQueueItem
 import logging
 
 

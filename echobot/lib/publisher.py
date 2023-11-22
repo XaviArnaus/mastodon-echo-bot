@@ -2,7 +2,7 @@ from pyxavi.config import Config
 from pyxavi.logger import Logger
 from pyxavi.terminal_color import TerminalColor
 from pyxavi.mastodon_publisher import MastodonPublisher
-from pyxavi.item_queue import Queue
+from pyxavi.queue_stack import Queue
 from pyxavi.mastodon_helper import MastodonConnectionParams,\
     StatusPost, StatusPostVisibility, StatusPostContentType
 import os

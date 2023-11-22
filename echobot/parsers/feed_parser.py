@@ -3,7 +3,7 @@ from pyxavi.storage import Storage
 from pyxavi.media import Media
 from pyxavi.url import Url
 from pyxavi.terminal_color import TerminalColor
-from pyxavi.item_queue import Queue, SimpleQueueItem
+from pyxavi.queue_stack import Queue, SimpleQueueItem
 from echobot.parsers.keywords_filter import KeywordsFilter
 from datetime import datetime
 from dateutil.relativedelta import relativedelta

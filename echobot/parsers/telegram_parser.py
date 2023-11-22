@@ -1,7 +1,7 @@
 from pyxavi.config import Config
 from pyxavi.storage import Storage
 from pyxavi.terminal_color import TerminalColor
-from pyxavi.item_queue import Queue, SimpleQueueItem
+from pyxavi.queue_stack import Queue, SimpleQueueItem
 from telethon import TelegramClient
 from telethon.types import Message as TelegramMessage
 import logging
