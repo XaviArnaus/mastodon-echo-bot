@@ -281,8 +281,8 @@ requests = "^2.28.0"
 [package.source]
 type = "git"
 url = "https://github.com/XaviArnaus/pyxavi.git"
-reference = "feature/make-queue-able-to-work-non-stateful"
-resolved_reference = "0a59a0dd4abc3712ff7c975ace59c3ea23e2527b"
+reference = "main"
+resolved_reference = "e8f24d648cf780e4271a8e029211452a3ab9f5a9"
 
 [[package]]
 name = "pyyaml"
@@ -413,7 +413,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "07b250486bfde26bdb234c553d898dc7f32f219c2383ee3a364b5f05ffd24905"
+content-hash = "07b403c980b082f7ac610ed95cc6f0f0ca6ada44203394b22e144bfdff7e0c99"
 
 [metadata.files]
 beautifulsoup4 = [
