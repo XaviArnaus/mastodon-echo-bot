@@ -25,6 +25,7 @@ class FeedParser:
     CLEANR = re.compile('<.*?>|&([a-z0-9]+|#[0-9]{1,6}|#x[0-9a-f]{1,6});')
     MAX_SUMMARY_LENGTH = 300
     DEFAULT_STORAGE_FILE = "storage/feeds.yaml"
+    DEFAULT_QUEUE_FILE = "storage/queue.yaml"
 
     def __init__(self, config: Config) -> None:
         self._config = config
@@ -32,7 +33,10 @@ class FeedParser:
         self._feeds_storage = Storage(
             self._config.get("feed_parser.storage_file", self.DEFAULT_STORAGE_FILE)
         )
-        self._queue = Queue(config=config)
+        self._queue = Queue(
+            logger=self._logger,
+            storage_file=config.get("toots_queue_storage.file", self.DEFAULT_QUEUE_FILE)
+        )
         self._media = Media()
         self._keywords_filter = KeywordsFilter(config)
 

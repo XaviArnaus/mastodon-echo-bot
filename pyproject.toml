@@ -12,7 +12,7 @@ beautifulsoup4 = "^4.12.2"
 pytz = "2023.3.post1"
 telethon = "^1.32.1"
 StrEnum = "^0.4.15"
-pyxavi = { git = "https://github.com/XaviArnaus/pyxavi.git", branch = "main" }
+pyxavi = { git = "https://github.com/XaviArnaus/pyxavi.git", branch = "feature/make-queue-able-to-work-non-stateful" }
 
 [tool.poetry.scripts]
 main = "runner:run"

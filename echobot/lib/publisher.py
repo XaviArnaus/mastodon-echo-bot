@@ -5,6 +5,7 @@ from pyxavi.mastodon_publisher import MastodonPublisher
 from pyxavi.item_queue import Queue
 from pyxavi.mastodon_helper import MastodonConnectionParams,\
     StatusPost, StatusPostVisibility, StatusPostContentType
+import os
 
 
 class Publisher(MastodonPublisher):
@@ -22,16 +23,22 @@ class Publisher(MastodonPublisher):
         "visibility": StatusPostVisibility.PUBLIC,
         "username_to_dm": None
     }
+    DEFAULT_QUEUE_FILE = "storage/queue.yaml"
 
     def __init__(
         self, config: Config, base_path: str = None, only_oldest: bool = False
     ) -> None:
+        
+        logger = Logger(config=config).get_logger()
 
         super().__init__(
-            config=config, logger=Logger(config=config).get_logger(), base_path=base_path
+            config=config, logger=logger, base_path=base_path
         )
 
-        self._queue = Queue(config=config, base_path=base_path)
+        queue_storage_file = config.get("toots_queue_storage.file", self.DEFAULT_QUEUE_FILE)
+        if base_path is not None:
+            queue_storage_file = os.path.join(base_path, queue_storage_file)
+        self._queue = Queue(logger=logger, storage_file=queue_storage_file)
         self._only_oldest = only_oldest if only_oldest is not None\
             else config.get("publisher.only_oldest_post_every_iteration", False)
 

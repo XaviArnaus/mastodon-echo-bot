@@ -12,6 +12,7 @@ class MastodonParser:
     Parses the toots from the registered accounts and feed the queue list of toots to publish.
     '''
     DEFAULT_STORAGE_FILE = "storage/accounts.yaml"
+    DEFAULT_QUEUE_FILE = "storage/queue.yaml"
 
     def __init__(self, config: Config) -> None:
         self._config = config
@@ -19,7 +20,10 @@ class MastodonParser:
         self._accounts_storage = Storage(
             config.get("mastodon_parser.storage_file", self.DEFAULT_STORAGE_FILE)
         )
-        self._queue = Queue(config=config)
+        self._queue = Queue(
+            logger=self._logger,
+            storage_file=config.get("toots_queue_storage.file", self.DEFAULT_QUEUE_FILE)
+        )
         self._keywords_filter = KeywordsFilter(config)
 
     def parse(self, mastodon: Mastodon) -> None:

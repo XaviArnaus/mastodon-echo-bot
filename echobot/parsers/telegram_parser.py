@@ -20,6 +20,7 @@ class TelegramParser:
     MAX_STATUS_LENGTH = 400
     DATE_FORMAT = "%Y-%m-%d"
     DEFAULT_TELEGRAM_FILE = "storage/telegram.yaml"
+    DEFAULT_QUEUE_FILE = "storage/queue.yaml"
 
     _telegram: TelegramClient
 
@@ -29,7 +30,10 @@ class TelegramParser:
         self._chats_storage = Storage(
             self._config.get("telegram_parser.storage_file", self.DEFAULT_TELEGRAM_FILE)
         )
-        self._queue = Queue(config=config)
+        self._queue = Queue(
+            logger=self._logger,
+            storage_file=config.get("toots_queue_storage.file", self.DEFAULT_QUEUE_FILE)
+        )
 
     def telegram_ok(self) -> None:
         self._telegram.get_me()
