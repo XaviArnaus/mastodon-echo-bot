@@ -37,9 +37,9 @@ format:
 do-yapf:
 	$(POETRY) run yapf -i -r .
 
-# .PHONY: test
-# test:
-# 	$(POETRY) run pytest
+.PHONY: test
+test:
+	$(POETRY) run pytest
 
 .PHONY: coverage
 coverage:

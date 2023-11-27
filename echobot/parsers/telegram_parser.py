@@ -2,6 +2,7 @@ from pyxavi.config import Config
 from pyxavi.storage import Storage
 from pyxavi.terminal_color import TerminalColor
 from pyxavi.queue_stack import Queue, SimpleQueueItem
+from echobot.parsers.parser_protocol import ParserProtocol
 from telethon import TelegramClient
 from telethon.types import Message as TelegramMessage
 import logging
@@ -13,7 +14,7 @@ import copy
 from hashlib import sha1
 
 
-class TelegramParser:
+class TelegramParser(ParserProtocol):
 
     ACCEPTED_NUM_MONTHS_AGO = 6
     MAX_MEDIA_PER_STATUS = 4
@@ -35,9 +36,6 @@ class TelegramParser:
             storage_file=config.get("toots_queue_storage.file", self.DEFAULT_QUEUE_FILE)
         )
 
-    def telegram_ok(self) -> None:
-        self._telegram.get_me()
-
     def initialize_client(self) -> TelegramClient:
         api_id = self._config.get("telegram_parser.api_id")
         api_hash = self._config.get("telegram_parser.api_hash")
@@ -53,7 +51,7 @@ class TelegramParser:
 
         return client
 
-    def parse(self) -> None:
+    def parse(self, params: dict = None) -> None:
         """
         The Telegram wrapper is reactive. You can't parse a list of messages but
         react on an incomming message.

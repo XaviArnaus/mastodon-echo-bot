@@ -281,8 +281,8 @@ requests = "^2.28.0"
 [package.source]
 type = "git"
 url = "https://github.com/XaviArnaus/pyxavi.git"
-reference = "main"
-resolved_reference = "54b0ed56f0b3635297d55009b7f32c0e6dfd9c20"
+reference = "feature/make-config-suporting-no-file"
+resolved_reference = "b75bb2a5223122244963db781540655bae2264c0"
 
 [[package]]
 name = "pyyaml"
@@ -413,7 +413,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "07b403c980b082f7ac610ed95cc6f0f0ca6ada44203394b22e144bfdff7e0c99"
+content-hash = "4e98b15952ac99721ca15007e86a2872cc067f205daf7199efa969e7f80cde97"
 
 [metadata.files]
 beautifulsoup4 = [
