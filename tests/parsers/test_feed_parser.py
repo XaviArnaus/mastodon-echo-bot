@@ -453,13 +453,13 @@ def test_set_ids_as_seen_for_source_adding_some():
     assert instance.is_id_already_seen_for_source(source, id3) is True
     assert instance.is_id_already_seen_for_source(source, id4) is True
 
-def test_post_process_elements_do_nothing():
+def test_post_process_for_source_do_nothing():
 
     posts = [QueuePost()]
 
     instance = get_instance()
 
-    assert instance.post_process_elements(posts) == posts
+    assert instance.post_process_for_source("source", posts) == posts
 
 def test_parse_media_has_no_media():
     post = QueuePost(

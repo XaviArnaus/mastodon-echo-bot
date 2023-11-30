@@ -2,9 +2,6 @@ from pyxavi.config import Config
 from pyxavi.storage import Storage
 from pyxavi.media import Media
 from pyxavi.url import Url
-# from pyxavi.terminal_color import TerminalColor
-# from pyxavi.queue_stack import Queue, SimpleQueueItem
-# from echobot.lib.keywords_filter import KeywordsFilter
 from echobot.parsers.parser_protocol import ParserProtocol
 from echobot.lib.queue_post import QueuePost, QueuePostMedia
 from datetime import datetime
@@ -246,7 +243,7 @@ class FeedParser(ParserProtocol):
         )
         self._feeds_storage.write_file()
     
-    def post_process_elements(self, posts: list[QueuePost]) -> list[QueuePost]:
+    def post_process_for_source(self, source: str, posts: list[QueuePost]) -> list[QueuePost]:
         return posts
 
     

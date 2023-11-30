@@ -108,7 +108,7 @@ class Echo(RunnerProtocol):
                     instance.set_ids_as_seen_for_source(source, [x.id for x in valid_posts])
 
                     # In some cases the instance wants to post process the resulting list.
-                    processed_posts = instance.post_process_elements(valid_posts)
+                    processed_posts = instance.post_process_for_source(source, valid_posts)
 
                     # And finally walk them to download media and apply format
                     for post in processed_posts:

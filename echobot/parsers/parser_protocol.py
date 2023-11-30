@@ -20,7 +20,7 @@ class ParserProtocol(Protocol):
     def set_ids_as_seen_for_source(self, source: str, list_of_ids: list) -> bool:
         """Performs the saving of the seen state"""
     
-    def post_process_elements(self, posts: list[QueuePost]) -> list[QueuePost]:
+    def post_process_for_source(self, source: str, posts: list[QueuePost]) -> list[QueuePost]:
         """Proccesses a list of posts and return a new one"""
     
     def parse_media(self, post: QueuePost) -> None:
