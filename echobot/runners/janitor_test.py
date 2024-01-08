@@ -9,7 +9,7 @@ import logging
 ##
 
 
-class TestJanitor(RunnerProtocol):
+class JanitorTest(RunnerProtocol):
 
     def __init__(
         self, config: Config = None, logger: logging = None, params: dict = None

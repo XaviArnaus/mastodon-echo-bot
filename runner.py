@@ -15,7 +15,7 @@ from echobot.runners.echo import Echo
 from echobot.runners.publish_queue import QueuePublisher
 from echobot.runners.publish_test import PublishTest
 from echobot.runners.telegram_login import TelegramLogin
-from echobot.runners.test_janitor import TestJanitor
+from echobot.runners.janitor_test import JanitorTest
 
 PROGRAM_NAME = "EchoBot"
 CLI_NAME = "echobot"
@@ -56,7 +56,7 @@ SUBCOMMAND_MAP = {
         ),
     },
     "janitor": {
-        "test": (TestJanitor, "Tests the connection to the Janitor API")
+        "test": (JanitorTest, "Tests the connection to the Janitor API")
     },
 }
 

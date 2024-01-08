@@ -1,13 +1,14 @@
 from pyxavi.config import Config
 from pyxavi.storage import Storage
 from pyxavi.terminal_color import TerminalColor
-from echobot.parsers.keywords_filter import KeywordsFilter
+from echobot.lib.keywords_filter import KeywordsFilter
+from echobot.parsers.parser_protocol import ParserProtocol
 from mastodon import Mastodon
 from pyxavi.queue_stack import Queue, SimpleQueueItem
 import logging
 
 
-class MastodonParser:
+class MastodonParser(ParserProtocol):
     '''
     Parses the toots from the registered accounts and feed the queue list of toots to publish.
     '''
@@ -26,7 +27,12 @@ class MastodonParser:
         )
         self._keywords_filter = KeywordsFilter(config)
 
-    def parse(self, mastodon: Mastodon) -> None:
+    def parse(self, params: dict = None) -> None:
+
+        if "mastodon" not in params or not isinstance(params["mastodon"], Mastodon):
+            raise RuntimeError("Expecting a Mastodon instance as a parameter")
+
+        mastodon = params["mastodon"]
 
         # Do we have accounts defined?
         accounts_params = self._config.get("mastodon_parser.accounts", None)

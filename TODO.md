@@ -1,0 +1,2 @@
+- Create a `slugify` version of the `get/set_hashed` and replace the current uses
+- `MastodonParser` does not work with the Firefish wrapper in `pyxavi`
