@@ -31,7 +31,7 @@ class MastodonParser(ParserProtocol):
 
         if "mastodon" not in params or not isinstance(params["mastodon"], Mastodon):
             raise RuntimeError("Expecting a Mastodon instance as a parameter")
-        
+
         mastodon = params["mastodon"]
 
         # Do we have accounts defined?

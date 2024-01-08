@@ -7,12 +7,11 @@ from echobot.lib.publisher import Publisher
 from echobot.lib.keywords_filter import KeywordsFilter
 from echobot.runners.runner_protocol import RunnerProtocol
 from echobot.lib.queue_post import QueuePost
-from definitions import ROOT_DIR, CONFIG_DIR
+from definitions import ROOT_DIR
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import pytz
 import logging
-import os
 
 from echobot.parsers.parser_protocol import ParserProtocol
 from echobot.parsers.mastodon_parser import MastodonParser
@@ -33,17 +32,13 @@ class Echo(RunnerProtocol):
             "module": TelegramParser,
         },
         "Mastodon": {
-            "module": MastodonParser,
-            "active": False
+            "module": MastodonParser, "active": False
         }
     }
     MONTHS_POST_TOO_OLD = 6
     DEFAULT_QUEUE_FILE = "storage/queue.yaml"
     DEFAULT = {
-        "max_length": 400,
-        "max_media_per_status": 4,
-        "language": "en",
-        "merge_content": False
+        "max_length": 400, "max_media_per_status": 4, "language": "en", "merge_content": False
     }
 
     def __init__(
@@ -61,24 +56,22 @@ class Echo(RunnerProtocol):
             logger=self._logger,
             storage_file=config.get("toots_queue_storage.file", self.DEFAULT_QUEUE_FILE)
         )
-    
+
     def run(self) -> None:
 
         self._logger.info(f"{TerminalColor.MAGENTA}Main EchoBot run{TerminalColor.END}")
         try:
 
             # Get the parsers that are active from the defined ones above.
-            parsers = self.load_active_parsers() # type: dict[str, ParserProtocol]
+            parsers = self.load_active_parsers()  # type: dict[str, ParserProtocol]
 
             # Get a config object specially prepared for the parsers
             parsers_config = self.prepare_config_for_parsers()
 
             for name, module in parsers.items():
-                self._logger.info(
-                    f"{TerminalColor.YELLOW}Processing {name}{TerminalColor.END}"
-                )
+                self._logger.info(f"{TerminalColor.YELLOW}Processing {name}{TerminalColor.END}")
                 # Instantiate this parser
-                instance = module(config=parsers_config) # type: ParserProtocol
+                instance = module(config=parsers_config)  # type: ParserProtocol
 
                 # Walk through all sources defined in the parser's config
                 for source, parameters in instance.get_sources().items():
@@ -91,7 +84,7 @@ class Echo(RunnerProtocol):
                     posts = instance.get_raw_content_for_source(source)
 
                     # Walk the posts to process them
-                    valid_posts = [] # type: list[QueuePost]
+                    valid_posts = []  # type: list[QueuePost]
                     discarded_posts = 0
                     for post in posts:
 
@@ -129,49 +122,48 @@ class Echo(RunnerProtocol):
 
                         # And finally, add it into the queue
                         self._queue.append(post)
-                
+
                 # Trying to isolate the possible issues between parsers,
                 #   we secure the current queue before we move to the next parser.
                 self._queue.deduplicate()
                 self._queue.sort()
                 self._queue.save()
 
-
-        
         except Exception as e:
-            # if self._config.get("janitor.active", False):
-            #     remote_url = self._config.get("janitor.remote_url")
-            #     if remote_url is not None and not self._config.get("publisher.dry_run"):
-            #         app_name = self._config.get("app.name")
-            #         Janitor(remote_url).error(
-            #             message="```" + full_stack() + "```",
-            #             summary=f"Echo bot [{app_name}] failed: {e}"
-            #         )
+            if self._config.get("janitor.active", False):
+                remote_url = self._config.get("janitor.remote_url")
+                if remote_url is not None and not self._config.get("publisher.dry_run"):
+                    app_name = self._config.get("app.name")
+                    Janitor(remote_url).error(
+                        message="```" + full_stack() + "```",
+                        summary=f"Echo bot [{app_name}] failed: {e}"
+                    )
 
             self._logger.exception(e)
-
 
     def load_active_parsers(self) -> dict:
         """Get the list of parsers that are active"""
         return {
-            name: x["module"] for name, x in self.PARSERS\
-                if "active" not in x or x["active"] == True
+            name: x["module"]
+            for name,
+            x in self.PARSERS if "active" not in x or x["active"] is True
         }
-    
+
     def prepare_config_for_parsers(self) -> Config:
         parsers_config = Config(params=self._config.get_all())
-        parsers_config.merge_from_dict(parameters={
-            "mastodon": self._publisher._mastodon,
-            "default": self.DEFAULT
-        })
+        parsers_config.merge_from_dict(
+            parameters={
+                "mastodon": self._publisher._mastodon, "default": self.DEFAULT
+            }
+        )
         return parsers_config
-    
+
     def _is_valid_date(self, post: QueuePost) -> bool:
         # From the post we receive a datetime in the [published_at]
         #   Careful, the datetime is not UTF safe.
         initial_outdated_day = datetime.now().replace(tzinfo=pytz.UTC)\
             - relativedelta(months=self.MONTHS_POST_TOO_OLD)
-        
+
         if initial_outdated_day > post.published_at.replace(tzinfo=pytz.UTC):
             return True
 
@@ -179,20 +171,19 @@ class Echo(RunnerProtocol):
             f"Discarding post {post.id}: Older than {self.MONTHS_POST_TOO_OLD} months"
         )
         return False
-    
+
     def _is_valid_keyword_profile(self, post: QueuePost, source_params: dict) -> bool:
         # From the source_params we receive a str in [keywords_filter_profile]
         #   it can be str or None
         if "keywords_filter_profile" not in source_params:
             return True
-        
+
         # The content to analyse comes in [raw_combined_body]
         #   and it is unclean, so it could come unnormalized.
-        if self._keywords_filter.profile_allows_text(
-                        source_params["keywords_filter_profile"],
-                        post.raw_combined_content):
+        if self._keywords_filter.profile_allows_text(source_params["keywords_filter_profile"],
+                                                     post.raw_combined_content):
             return True
-        
+
         self._logger.debug(
             f"Discarding post {post.id}: Do not pass keywords profile " +
             f"{post.filters['keywords_profile']}"
@@ -202,11 +193,10 @@ class Echo(RunnerProtocol):
     def _is_already_seen(self, post: QueuePost, source: str, instance: ParserProtocol) -> bool:
         # From the post we get the ID. should never be None
         if instance.is_id_already_seen_for_source(source=source, id=post.id):
-             self._logger.debug(f"Discarding post {post.id}: Already seen")
-             return True
-        
-        return False
+            self._logger.debug(f"Discarding post {post.id}: Already seen")
+            return True
 
+        return False
 
     # def run_old(self) -> None:
     #     '''

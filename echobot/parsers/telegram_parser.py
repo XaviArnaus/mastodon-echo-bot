@@ -1,7 +1,5 @@
 from pyxavi.config import Config
 from pyxavi.storage import Storage
-from pyxavi.terminal_color import TerminalColor
-from pyxavi.queue_stack import Queue, SimpleQueueItem
 from echobot.lib.queue_post import QueuePost, QueuePostMedia
 from echobot.parsers.parser_protocol import ParserProtocol
 from telethon import TelegramClient
@@ -9,12 +7,8 @@ from telethon.types import Message as TelegramMessage
 import logging
 from datetime import datetime, timedelta
 from string import Template
-from dateutil.relativedelta import relativedelta
-import pytz
 import math
-import copy
 from hashlib import sha1
-from pyxavi.debugger import dd
 
 
 class TelegramParser(ParserProtocol):
@@ -31,7 +25,7 @@ class TelegramParser(ParserProtocol):
     TEMPLATE_THREAD_INFO = "🧵 $current/$total"
     TEMPLATE_BODY_WITH_THREAD = "$body\n\n$thread"
     # This template only adds origin into the body
-    TEMPLATE_BODY_WITH_ORIGIN= "$origin\t$body"
+    TEMPLATE_BODY_WITH_ORIGIN = "$origin\t$body"
 
     _telegram: TelegramClient
 
@@ -44,23 +38,21 @@ class TelegramParser(ParserProtocol):
         # The ID here that is coming as "chat_id" is actually an "entity.id"
         #   Remember this when referring by source
         self._sources = {x["name"]: x for x in self._get_conversations()}
-        self._sources_name_to_id = {x["name"]: str(abs(x["id"])) for x in self._get_conversations()}
-        self._already_seen = {} # type: dict[str, list]
+        self._sources_name_to_id = {
+            x["name"]: str(abs(x["id"]))
+            for x in self._get_conversations()
+        }
+        self._already_seen = {}  # type: dict[str, list]
         # self._queue = Queue(
         #     logger=self._logger,
         #     storage_file=config.get("toots_queue_storage.file", self.DEFAULT_QUEUE_FILE)
         # )
         self._max_media_per_status = self._config.get(
-            "default.max_media_per_status",
-            self.MAX_MEDIA_PER_STATUS
+            "default.max_media_per_status", self.MAX_MEDIA_PER_STATUS
         )
-        self._max_status_length = self._config.get(
-            "default.max_length",
-            self.MAX_STATUS_LENGTH
-        )
+        self._max_status_length = self._config.get("default.max_length", self.MAX_STATUS_LENGTH)
         self._telegram = self._initialize_client()
-        
-    
+
     def get_sources(self) -> dict:
         return self._sources
 
@@ -78,13 +70,13 @@ class TelegramParser(ParserProtocol):
         self._logger.debug("Telegram Client is set up")
 
         return client
-    
+
     def _get_conversations(self) -> list:
         # Chats and channels are managed equally, but under different entities.
         chats = self._config.get("telegram_parser.chats", [])
         chats += self._config.get("telegram_parser.channels", [])
         return chats
-    
+
     def get_raw_content_for_source(self, source: str, params: dict = None) -> list[QueuePost]:
         """
         The Telegram wrapper is reactive. You can't parse a list of messages but
@@ -94,16 +86,15 @@ class TelegramParser(ParserProtocol):
         # Do we have this source defined?
         if source not in self._sources:
             raise RuntimeError(f"Source of data [{source}] not found.")
-        
+
         # Initialisation
         ignore_offsets = self._config.get("telegram_parser.ignore_offsets", False)
         date_to_start_from = self._config.get("telegram_parser.date_to_start_from", None)
         offset_date = datetime.strptime(
-            date_to_start_from,
-            self.DATE_FORMAT
+            date_to_start_from, self.DATE_FORMAT
         ) if date_to_start_from else None
-        language = self._sources[source]["language"] if "language" in self._sources[source]\
-                      else self.DEFAULT_LANGUAGE
+        language = self._sources[source]["language"]\
+            if "language" in self._sources[source] else self.DEFAULT_LANGUAGE
 
         # We only need the chat IDs to then retrieve later the Entities.
         # chat_ids = list(
@@ -134,9 +125,9 @@ class TelegramParser(ParserProtocol):
             filter(
                 bool,
                 [
-                    dialog.entity\
-                        if dialog.entity.id == self.__get_entity_id_from_source(source)\
-                        else False for dialog in self._telegram.iter_dialogs()
+                    dialog.entity
+                    if dialog.entity.id == self.__get_entity_id_from_source(source) else False
+                    for dialog in self._telegram.iter_dialogs()
                 ]
             )
         )
@@ -171,30 +162,29 @@ class TelegramParser(ParserProtocol):
                     offset_id=max(seen_message_ids)
                     if seen_message_ids and not ignore_offsets else 0,
                     offset_date=offset_date if offset_date and not ignore_offsets else None):
-                
+
                 # Filtering out messages for diverse reasons happen in the caller
                 #   therefore here we only pack the object
                 messages_to_post.append(
                     QueuePost(
                         id=message.id,
                         raw_content={
-                            "telegram_message": message,
-                            "telegram_entity": entity
+                            "telegram_message": message, "telegram_entity": entity
                         },
                         raw_combined_content=message.text,
                         published_at=message.date,
                         language=language
                     )
                 )
-        
+
         return messages_to_post
-    
 
     def __get_entity_id_from_source(self, source: str) -> int:
         return self._sources_name_to_id[source]
-    
+
     def __get_source_name_from_entity_id(self, entity_id: int) -> str:
-        return list(self._sources_name_to_id.keys())[list(self._sources_name_to_id.values()).index(entity_id)]
+        return list(self._sources_name_to_id.keys())[list(self._sources_name_to_id.values()
+                                                          ).index(entity_id)]
 
     def __load_already_seen_for_source(self, source: str) -> None:
 
@@ -203,31 +193,29 @@ class TelegramParser(ParserProtocol):
         self._logger.debug("Getting possible stored data for %s", source)
         # It was: list(self._chats_storage.get(f"entity_{entity.id}", []))
         self._already_seen[source] = list(self._chats_storage.get(f"entity_{entity_id}", []))
-    
 
     def is_id_already_seen_for_source(self, source: str, id: any) -> bool:
         """Identifies if this ID is already registered in the state"""
 
         if source not in self._already_seen or self._already_seen[source] is None:
             self.__load_already_seen_for_source(source)
-        
+
         return True if id in self._already_seen[source] else False
 
     def set_ids_as_seen_for_source(self, source: str, list_of_ids: list) -> None:
         """Performs the saving of the seen state"""
-        
+
         for new_message_id in list_of_ids:
             self._already_seen[source].append(new_message_id)
-        
+
         self._logger.debug(f"Updating seen Message IDs for {source}")
         self._chats_storage.set(
-            f"entity_{self.__get_entity_id_from_source(source)}",
-            self._already_seen[source]
+            f"entity_{self.__get_entity_id_from_source(source)}", self._already_seen[source]
         )
         self._chats_storage.write_file()
-    
+
     def post_process_for_source(self, source: str, posts: list[QueuePost]) -> list[QueuePost]:
-        
+
         # TODO: elif 1 single post or 1 post per entity just return it
         if len(posts) == 0:
             self._logger.info("No messages to publish")
@@ -251,19 +239,19 @@ class TelegramParser(ParserProtocol):
 
                 # From here on we make it async, because we need the media downloaded
                 # and attached to the message, and the lib functions are async.
-                self._logger.debug(
-                    f"Preparing group of {len(group_of_posts)} post(s)."
-                )
+                self._logger.debug(f"Preparing group of {len(group_of_posts)} post(s).")
                 # self.post_group_of_messages(
                 #     messages=group_of_messages,
                 #     entity=entity,
                 #     chat_params=self._sources[source]
                 # )
-                posts_to_publish = self._process_group_of_posts_for_source(source, group_of_posts)
+                posts_to_publish = self._process_group_of_posts_for_source(
+                    source, group_of_posts
+                )
                 final_stack_of_posts = final_stack_of_posts + posts_to_publish
-            
+
             return final_stack_of_posts
-    
+
     def _group_posts(self, posts: list[QueuePost]) -> list[list]:
 
         # In the previous implementation we did not have a wrapping QueuePost object, it was
@@ -285,7 +273,9 @@ class TelegramParser(ParserProtocol):
         for post in posts:
             # If we don't have a last post, it's the first post
             if last_post is None:
-                self._logger.debug(f"Post {post.published_at} is the first one. Creating group.")
+                self._logger.debug(
+                    f"Post {post.published_at} is the first one. Creating group."
+                )
                 last_post = post
                 current_group.append(post)
             else:
@@ -294,7 +284,7 @@ class TelegramParser(ParserProtocol):
                 # OR
                 # - This post has text
                 if last_post.published_at + timedelta(0, 0, 0, 0, 1) < post.published_at \
-                   or (post.raw_content["telegram_message"].text is not None\
+                   or (post.raw_content["telegram_message"].text is not None
                    and len(post.raw_content["telegram_message"].text) > 0):
                     # We need to close the current group and start a new one
                     self._logger.debug(
@@ -306,7 +296,8 @@ class TelegramParser(ParserProtocol):
                 # Now add this post to the current group.
                 # It will be a new group if the previous check reset it.
                 self._logger.debug(
-                    f"Added {post.published_at} into a group that has {len(current_group)} elements"
+                    f"Added {post.published_at} into a group "
+                    f"that has {len(current_group)} elements"
                 )
                 current_group.append(post)
                 last_post = post
@@ -315,7 +306,7 @@ class TelegramParser(ParserProtocol):
         groups.append(current_group)
 
         return groups
-    
+
     def _process_group_of_posts_for_source(self, source: str, posts: list[QueuePost]):
 
         # The responsibility of this one is:
@@ -363,10 +354,10 @@ class TelegramParser(ParserProtocol):
 
             if status_date is None:
                 status_date = message.date
-            
+
             # Other data that we kept in the wrapper object
             language = post.language
-        
+
         # Now, we split based on:
         # - The text may be too long
         # - The amount of media is more than 4 items
@@ -402,10 +393,8 @@ class TelegramParser(ParserProtocol):
             if num_of_statuses > 1:
                 text_to_post = Template(self.TEMPLATE_BODY_WITH_THREAD).substitute(
                     body=text[0:max_status_length],
-                    thread=Template(self.TEMPLATE_THREAD_INFO).substitute(
-                        current=status_num,
-                        total=num_of_statuses
-                    )
+                    thread=Template(self.TEMPLATE_THREAD_INFO
+                                    ).substitute(current=status_num, total=num_of_statuses)
                 )
                 # Leave the remaining text
                 if len(text) > max_status_length:
@@ -420,44 +409,39 @@ class TelegramParser(ParserProtocol):
                 QueuePost(
                     id=sha1(text_to_post.encode()).hexdigest(),
                     raw_content={
-                        "body": text_to_post,
-                        "telegram_media_messages": media_to_post
+                        "body": text_to_post, "telegram_media_messages": media_to_post
                     },
                     group=identification,
                     published_at=status_date,
                     language=language,
                 )
             )
-        
+
         return posts_to_publish
 
     def format_post_for_source(self, source: str, post: QueuePost) -> None:
 
-         # Do we need to add the source name into the title?
+        # Do we need to add the source name into the title?
         if "show_name" in self._sources[source] and self._sources[source]["show_name"]:
             body = Template(self.TEMPLATE_BODY_WITH_ORIGIN).substitute(
-                origin=source,
-                body=post.raw_content["body"]
+                origin=source, body=post.raw_content["body"]
             )
         else:
             body = post.raw_content["body"]
-        
+
         post.text = body
 
-
     def __calculate_max_status_length(
-            self,
-            digits_current: int = 2,
-            digits_total: int = 2
+        self, digits_current: int = 2, digits_total: int = 2
     ) -> int:
 
         max_length_wanted = self._max_status_length
-        length_thread_suffix = len(Template(self.TEMPLATE_THREAD_INFO).substitute(
-            current="".zfill(digits_current),
-            total="".zfill(digits_total)
-        )) + len("\n\n")
+        length_thread_suffix = len(
+            Template(
+                self.TEMPLATE_THREAD_INFO
+            ).substitute(current="".zfill(digits_current), total="".zfill(digits_total))
+        ) + len("\n\n")
         return max_length_wanted - length_thread_suffix
-
 
     def parse_media(self, post: QueuePost) -> None:
         # Initialise first
@@ -477,13 +461,8 @@ class TelegramParser(ParserProtocol):
                 self._logger.debug(f"Downloading media to {filename}")
                 path = self._loop_async_download(message=message, filename=filename)
                 # Append a new Media object
-                post.media.append(
-                    QueuePostMedia(
-                        path=path,
-                        mime_type=message.file.mime_type
-                    )
-                )
-    
+                post.media.append(QueuePostMedia(path=path, mime_type=message.file.mime_type))
+
     def _loop_async_download(self, message: TelegramMessage, filename: str) -> str:
         # This abstraction is only to be able to test
         return self._telegram.loop.run_until_complete(

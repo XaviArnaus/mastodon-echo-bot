@@ -53,7 +53,8 @@ class QueuePost(QueueItemProtocol):
             "action": str(self.action),
             "language": self.language,
             "media": list(map(lambda x: x.to_dict(), self.media)) if self.media else None,
-            "published_at": datetime.timestamp(self.published_at) if self.published_at is not None else None,
+            "published_at": datetime.timestamp(self.published_at)
+            if self.published_at is not None else None,
         }
 
     @staticmethod
@@ -95,9 +96,7 @@ class QueuePostAction:
         return value
 
     def priority() -> list:
-        return [
-            QueuePostAction.NEW
-        ]
+        return [QueuePostAction.NEW]
 
 
 class QueuePostMedia:

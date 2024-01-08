@@ -8,7 +8,6 @@ from datetime import datetime
 from dateutil import parser
 from bs4 import BeautifulSoup
 from time import mktime
-from pyxavi.debugger import dd
 from string import Template
 import feedparser
 import logging
@@ -27,7 +26,7 @@ class FeedParser(ParserProtocol):
     # DEFAULT_QUEUE_FILE = "storage/queue.yaml"
 
     # This template only adds origin into the title
-    TEMPLATE_TITLE_WITH_ORIGIN= "$origin\t$title"
+    TEMPLATE_TITLE_WITH_ORIGIN = "$origin\t$title"
     # At this point title comes with origin if it should
     TEMPLATE_MERGED_CONTENT = "$title\n\n$body"
     # Whatever we have in body, we add the link to it
@@ -40,8 +39,8 @@ class FeedParser(ParserProtocol):
             self._config.get("feed_parser.storage_file", self.DEFAULT_STORAGE_FILE)
         )
         self._sources = {x["name"]: x for x in self._config.get("feed_parser.sites", [])}
-        self._already_seen = {} # type: dict[str, list]
-    
+        self._already_seen = {}  # type: dict[str, list]
+
     def format_post_for_source(self, source: str, post: QueuePost) -> None:
 
         # Cleaning title
@@ -51,13 +50,13 @@ class FeedParser(ParserProtocol):
             if title_only_chars == title_only_chars.upper():
                 title = " ".join(
                     [
-                        word.capitalize()\
-                            for word in post.raw_content["title"].lower().split(" ")
+                        word.capitalize()
+                        for word in post.raw_content["title"].lower().split(" ")
                     ]
                 )
             else:
                 title = post.raw_content["title"]
-        
+
         # Cleaning body
         body = ""
         if "body" in post.raw_content and post.raw_content["body"] != "":
@@ -66,23 +65,19 @@ class FeedParser(ParserProtocol):
             body = body.replace("\n\n\n", "\n\n")
             body = re.sub(r'\s+', ' ', body)
             body = body.strip(" ")
-        
+
         # Do we need to add the source name into the title?
         if "show_name" in self._sources[source] and self._sources[source]["show_name"]:
             title = Template(self.TEMPLATE_TITLE_WITH_ORIGIN).substitute(
-                origin=source,
-                title=title
+                origin=source, title=title
             )
-        
+
         # Do we need to merge all fields into the body
         #   or we want to have the title separated?
         if self._config.get("default.merge_content", False):
-            body = Template(self.TEMPLATE_MERGED_CONTENT).substitute(
-                title=title,
-                body=body
-            )
+            body = Template(self.TEMPLATE_MERGED_CONTENT).substitute(title=title, body=body)
             title = None
-        
+
         # Cutting the body as per max length
         max_length = self._config.get("default.max_length", self.MAX_SUMMARY_LENGTH)
         if "max_summary_length" in self._sources[source] and\
@@ -96,17 +91,16 @@ class FeedParser(ParserProtocol):
         if post_len + url_len > max_length:
             overall_cut_length = max_length - url_len - 3
             body = (body[:overall_cut_length] + '...')
-        
+
         # Finally applying everything into the last template
         post.summary = title
         post.text = Template(self.TEMPLATE_SUMMARY_CONTENT).substitute(
-            body=body,
-            link=post.raw_content["url"]
+            body=body, link=post.raw_content["url"]
         )
-    
+
     def get_sources(self) -> dict:
         return self._sources
-    
+
     def __datetime_from_struct_date(self, struct_time: tuple) -> datetime:
 
         # struct_time has a tuple-style:
@@ -119,10 +113,10 @@ class FeedParser(ParserProtocol):
     def __choose_language_for_source(self, source: str, parsed_content: dict) -> str:
         default_language = self._sources[source]["language_default"]\
             if "language_default" in self._sources[source] else None
-        
+
         shall_override_with_default_language = self._sources[source]["language_override"]\
             if "language_override" in self._sources[source] else False
-        
+
         # Priority order:
         #   overriding language > content language > source parameters language > class language
         #   But we always want to have a language
@@ -131,25 +125,25 @@ class FeedParser(ParserProtocol):
         # If we have a default language defined in the parameters of the source
         if default_language is not None:
             language = default_language
-        
-        # If the parameters say that we need to override the language, no matter what it comes, we do
+
+        # If the parameters say that we need to override the language,
+        #   no matter what it comes, we do
         if shall_override_with_default_language and default_language is not None:
             return default_language
-        
+
         # Now, if we actually have a language in the feed, use it.
         #   Again, this is not a language per post, is a language per feed!
         if "feed" in parsed_content and "language" in parsed_content["feed"]:
             language = parsed_content["feed"]["language"]
-        
+
         return language
 
-    
     def get_raw_content_for_source(self, source: str) -> list[QueuePost]:
 
         # Do we have this source defined?
         if source not in self._sources:
             raise RuntimeError(f"Source of data [{source}] not found.")
-        
+
         # Load the site data
         site = self._sources[source]
 
@@ -211,12 +205,10 @@ class FeedParser(ParserProtocol):
                 )
             )
 
-            self._logger.debug(
-                f"Discarded {discarded_posts} invalid posts from {source}"
-            )
-        
+            self._logger.debug(f"Discarded {discarded_posts} invalid posts from {source}")
+
         return list_of_raw_posts
-    
+
     def is_id_already_seen_for_source(self, source: str, id: any) -> bool:
         """Identifies if this ID is already registered in the state"""
 
@@ -225,26 +217,24 @@ class FeedParser(ParserProtocol):
             site_data = self._feeds_storage.get_hashed(self._sources[source]["url"], None)
             self._already_seen[source] = site_data["urls_seen"]\
                 if site_data and "urls_seen" in site_data else []
-        
+
         return True if id in self._already_seen[source] else False
-    
+
     def set_ids_as_seen_for_source(self, source: str, list_of_ids: list) -> None:
         """Performs the saving of the seen state"""
-        
+
         for new_url in list_of_ids:
             self._already_seen[source].append(new_url)
-        
+
         self._logger.debug(f"Updating seen URLs for {source}")
         self._feeds_storage.set_hashed(
-            self._sources[source]["url"],
-            {"urls_seen": self._already_seen[source]}
+            self._sources[source]["url"], {"urls_seen": self._already_seen[source]}
         )
         self._feeds_storage.write_file()
-    
+
     def post_process_for_source(self, source: str, posts: list[QueuePost]) -> list[QueuePost]:
         return posts
 
-    
     def parse_media(self, post: QueuePost) -> None:
         """
         Parses the media attached to the content, if exists
@@ -273,4 +263,3 @@ class FeedParser(ParserProtocol):
         # And now set the list into the post field
         #   It should be returned by reference.
         post.media = result
-        
