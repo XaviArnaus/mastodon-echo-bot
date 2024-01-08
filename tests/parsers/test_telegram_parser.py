@@ -14,8 +14,6 @@ import math
 from hashlib import sha1
 from string import Template
 
-pytest_plugins = ('pytest_asyncio', )
-
 CONFIG = {
     "logger": {
         "name": "custom_logger"
