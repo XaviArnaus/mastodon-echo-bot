@@ -42,7 +42,7 @@ class FeedParser(ParserProtocol):
         self._sources = {x["name"]: x for x in self._config.get("feed_parser.sites", [])}
         self._already_seen = {} # type: dict[str, list]
     
-    def format_post_for_source(self, source: str, post: QueuePost, params: dict = {}) -> None:
+    def format_post_for_source(self, source: str, post: QueuePost) -> None:
 
         # Cleaning title
         title = ""
@@ -76,7 +76,7 @@ class FeedParser(ParserProtocol):
         
         # Do we need to merge all fields into the body
         #   or we want to have the title separated?
-        if "merge_content" in params and params["merge_content"]:
+        if self._config.get("default.merge_content", False):
             body = Template(self.TEMPLATE_MERGED_CONTENT).substitute(
                 title=title,
                 body=body
@@ -84,10 +84,8 @@ class FeedParser(ParserProtocol):
             title = None
         
         # Cutting the body as per max length
-        max_length = self.MAX_SUMMARY_LENGTH
-        if "max_length" in params and params["max_length"]:
-            max_length = int(params["max_length"])
-        elif "max_summary_length" in self._sources[source] and\
+        max_length = self._config.get("default.max_length", self.MAX_SUMMARY_LENGTH)
+        if "max_summary_length" in self._sources[source] and\
            self._sources[source]["max_summary_length"]:
             max_length = self._sources[source]["max_summary_length"]
         # The max_length is only the space we have for the mastodon status.
@@ -146,7 +144,7 @@ class FeedParser(ParserProtocol):
         return language
 
     
-    def get_raw_content_for_source(self, source: str, params: dict = None) -> list[QueuePost]:
+    def get_raw_content_for_source(self, source: str) -> list[QueuePost]:
 
         # Do we have this source defined?
         if source not in self._sources:

@@ -11,7 +11,7 @@ class ParserProtocol(Protocol):
     def get_sources(self) -> dict:
         """Gets each source and all related parameters by name"""
     
-    def get_raw_content_for_source(self, source: str, params: dict = None) -> list[QueuePost]:
+    def get_raw_content_for_source(self, source: str) -> list[QueuePost]:
         """Gets the data from the source"""
     
     def is_id_already_seen_for_source(self, source: str, id: any) -> bool:
@@ -34,5 +34,5 @@ class ParserProtocol(Protocol):
         can do that. It is left to the parser to decide
         """
     
-    def format_post_for_source(self, source: str, post: QueuePost, params: dict = None) -> None:
+    def format_post_for_source(self, source: str, post: QueuePost) -> None:
         """Apply a format to a single post"""

@@ -10,7 +10,7 @@ from dateutil import parser
 from unittest.mock import patch, Mock
 from unittest import TestCase
 import pytest
-from logging import Logger as BuildInLogger
+from logging import Logger as BuiltInLogger
 import copy
 from hashlib import sha256
 from string import Template
@@ -33,9 +33,8 @@ CONFIG = {
     }
 }
 
-FEEDS = {
-
-}
+# This keeps the state of already seen
+FEEDS = {}
 
 
 @pytest.fixture(autouse=True)
@@ -67,7 +66,7 @@ def test_instantiation():
     assert isinstance(instance, FeedParser)
     assert isinstance(instance, ParserProtocol)
     assert isinstance(instance._config, Config)
-    assert isinstance(instance._logger, BuildInLogger)
+    assert isinstance(instance._logger, BuiltInLogger)
     assert isinstance(instance._feeds_storage, Storage)
     assert instance._sources == {
         CONFIG["feed_parser"]["sites"][0]["name"]: CONFIG["feed_parser"]["sites"][0]
@@ -660,6 +659,9 @@ def test_format_post_for_source_show_name_max_length_cut_by_param():
         "name": source,
         "show_name": True
     }
+    CONFIG["default"] = {
+        "max_length": 45
+    }
     
     instance = get_instance()
 
@@ -670,7 +672,7 @@ def test_format_post_for_source_show_name_max_length_cut_by_param():
         body="I am t...", link=link
     )
     
-    instance.format_post_for_source(source, post, params={"max_length": 45})
+    instance.format_post_for_source(source, post)
 
     assert post.summary == expected_title
     assert post.text == expected_body
@@ -784,6 +786,9 @@ def test_format_post_for_source_merge_content():
         "name": source,
         "show_name": False
     }
+    CONFIG["default"] = {
+        "merge_content": True
+    }
     
     instance = get_instance()
 
@@ -795,7 +800,7 @@ def test_format_post_for_source_merge_content():
          body=expected_body, title=title
     )
     
-    instance.format_post_for_source(source, post, params={"merge_content": True})
+    instance.format_post_for_source(source, post)
 
     assert post.summary == expected_title
     assert post.text == expected_body

@@ -39,6 +39,12 @@ class Echo(RunnerProtocol):
     }
     MONTHS_POST_TOO_OLD = 6
     DEFAULT_QUEUE_FILE = "storage/queue.yaml"
+    DEFAULT = {
+        "max_length": 400,
+        "max_media_per_status": 4,
+        "language": "en",
+        "merge_content": False
+    }
 
     def __init__(
         self, config: Config = None, logger: logging = None, params: dict = None
@@ -61,7 +67,7 @@ class Echo(RunnerProtocol):
         self._logger.info(f"{TerminalColor.MAGENTA}Main EchoBot run{TerminalColor.END}")
         try:
 
-            # Get the parsers that are active fro the defined ones above.
+            # Get the parsers that are active from the defined ones above.
             parsers = self.load_active_parsers() # type: dict[str, ParserProtocol]
 
             # Get a config object specially prepared for the parsers
@@ -147,12 +153,16 @@ class Echo(RunnerProtocol):
 
     def load_active_parsers(self) -> dict:
         """Get the list of parsers that are active"""
-        return {name: x for name, x in self.PARSERS if "active" not in x or x["active"] == True}
+        return {
+            name: x["module"] for name, x in self.PARSERS\
+                if "active" not in x or x["active"] == True
+        }
     
     def prepare_config_for_parsers(self) -> Config:
         parsers_config = Config(params=self._config.get_all())
         parsers_config.merge_from_dict(parameters={
-            "mastodon": self._publisher._mastodon
+            "mastodon": self._publisher._mastodon,
+            "default": self.DEFAULT
         })
         return parsers_config
     
