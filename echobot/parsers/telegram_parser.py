@@ -53,14 +53,6 @@ class TelegramParser:
 
         return client
     
-    def _extract_id(self, raw_id: str) -> str:
-        if raw_id.startswith("@"):
-            # It's a chat ID
-            return raw_id
-        else:
-            # It's a Channel ID
-            return str(abs(raw_id))
-
     def parse(self) -> None:
         """
         The Telegram wrapper is reactive. You can't parse a list of messages but
@@ -79,15 +71,15 @@ class TelegramParser:
 
         # We only need the chat IDs to then retrieve later the Entities.
         chat_ids = list(
-            filter(bool, [self._extract_id(chat["id"]) if "id" in chat else False for chat in chats])
+            filter(bool, [abs(chat["id"]) if "id" in chat else False for chat in chats])
         )
         # Also, build a dict for the configuration
         chats_params = {}
         for chat in chats:
-            chats_params[self._extract_id(chat["id"])] = chat
+            chats_params[str(abs(chat["id"]))] = chat
 
         # Get the entities that match with the given IDs.
-        self._logger.debug("Get matching entities from the current user's dialogs")
+        self._logger.debug("Get matching entities from the current user's dialogs " + str(len(chat_ids)))
         entities = list(
             filter(
                 bool,
